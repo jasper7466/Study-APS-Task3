@@ -57,7 +57,6 @@ Antida Python School. Итоговое задание по курсу. Учеб�
 ```
 DB_CONNECTION = example.db
 SECRET_KEY = secret_key
-UPLOAD_FOLDER = './uploads'
 ```
 
 *.flaskenv:*
