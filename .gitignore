@@ -131,6 +131,3 @@ dmypy.json
 
 # Editor config
 .idea
-
-# Default uploaded files storage
-uploads/
