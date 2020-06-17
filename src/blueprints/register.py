@@ -1,10 +1,9 @@
+from database import db
 from flask import (
     Blueprint,
-    request,
-    jsonify
+    request
 )
 from flask.views import MethodView
-from database import db
 from services.register import (
     RegisterService,
     RegistrationFailedError
@@ -14,10 +13,10 @@ bp = Blueprint('register', __name__)
 
 
 class RegisterView(MethodView):
-    def post(self, account=None):
+    def post(self):
         """
         Обработчик POST-запроса на регистрацию пользователя.
-        :return:
+        :return new_user: параметры созданного пользователя
         """
         request_json = request.json
 
