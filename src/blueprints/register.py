@@ -1,10 +1,9 @@
+from database import db
 from flask import (
     Blueprint,
-    request,
-    jsonify
+    request
 )
 from flask.views import MethodView
-from database import db
 from services.register import (
     RegisterService,
     RegistrationFailedError
