@@ -14,10 +14,10 @@ bp = Blueprint('register', __name__)
 
 
 class RegisterView(MethodView):
-    def post(self, account=None):
+    def post(self):
         """
         Обработчик POST-запроса на регистрацию пользователя.
-        :return:
+        :return new_user: параметры созданного пользователя
         """
         request_json = request.json
 
