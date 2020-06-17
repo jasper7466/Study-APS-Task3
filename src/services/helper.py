@@ -8,7 +8,7 @@ def insert(table, data, connection):
     :param table: имя таблицы
     :param data: словарь с записываемыми данными
     :param connection: соединение с БД
-    :return instance_id: идентифкатор записи
+    :return instance_id: идентификатор записи
     """
     # Создание списков ключей и значений
     keys = ', '.join(f'{key}' for key in data.keys())
