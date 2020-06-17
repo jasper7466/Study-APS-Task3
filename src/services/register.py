@@ -1,6 +1,6 @@
-import sqlite3 as sqlite
 from exceptions import ServiceError
 from werkzeug.security import generate_password_hash
+from services.helper import insert
 
 
 class RegisterServiceError(ServiceError):
@@ -25,21 +25,12 @@ class RegisterService:
         password_hash = generate_password_hash(new_user['password'])
         new_user['password'] = password_hash
 
-        # Создание списков ключей и значений
-        keys = ', '.join(f'{key}' for key in new_user.keys())
-        values = ', '.join(f'"{value}"' for value in new_user.values())
-
-        # Попытка записи в БД
-        try:
-            self.connection.execute('PRAGMA foreign_keys = ON')
-            cur = self.connection.execute(f'INSERT INTO user ({keys}) VALUES ({values})')
-            instance_id = cur.lastrowid
-        except sqlite.IntegrityError:
-            self.connection.rollback()
+        # Запись в БД
+        user_id = insert('user', new_user, self.connection)
+        if user_id is None:
             raise RegistrationFailedError()
         else:
             # Подготовка ответа
             new_user.pop('password')
-            new_user['id'] = instance_id
-
-        return new_user
+            new_user['id'] = user_id
+            return new_user
