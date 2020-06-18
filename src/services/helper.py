@@ -24,3 +24,17 @@ def insert(table, data, connection):
         return None
     else:
         return instance_id
+
+
+def update(table, data, id, connection):
+    """
+    Функция для обновления данных в таблице БД через словарь, когда названия его ключей
+    совпадают с названиями полей таблицы.
+    :param table: имя таблицы
+    :param data: словарь с новыми данными
+    :param id: идентификатор обновляемой записи
+    :param connection: соединение с БД
+    :return instance_id: идентификатор записи
+    """
+    records = ', '.join(f'{key} = "{value}"' for key, value in data.items())
+    connection.execute(f'UPDATE {table} SET {records} WHERE id = {id}')
