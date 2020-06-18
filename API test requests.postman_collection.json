@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "ac5c2897-bbcb-4617-9303-2502a98404bc",
+		"_postman_id": "8019e683-8406-4879-95f1-e50df3a90da4",
 		"name": "API test requests",
 		"description": "Коллекция тестовых запросов для проверки и отладки сервиса",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -76,7 +76,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "2f48c9c1-ada2-4ac5-b094-28ec0d70fa35",
+						"id": "9984bb6a-2a74-4bca-858e-a0764d628514",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -86,7 +86,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "626037e4-fe3b-46d1-8378-9fed26a19f58",
+						"id": "86b283b5-373d-425e-88cc-57a0b8507488",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -384,6 +384,35 @@
 							"port": "5000",
 							"path": [
 								"categories"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Logout (POST /logout)",
+			"item": [
+				{
+					"name": "Logout (200)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/auth/logout",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"auth",
+								"logout"
 							]
 						}
 					},
