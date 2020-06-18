@@ -34,3 +34,13 @@ def login():
         else:
             session['user_id'] = user_id
             return '', 200
+
+
+@bp.route('/logout', methods=['POST'])
+def logout():
+    """
+    Обработчик POST-запроса на завершение сессии.
+    :return: nothing
+    """
+    session.pop('user_id', None)
+    return '', 200
