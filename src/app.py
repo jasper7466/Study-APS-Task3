@@ -3,7 +3,6 @@ from blueprints.register import bp as register_bp
 from database import db
 from flask import Flask
 
-from database import db
 from blueprints.register import bp as register_bp
 from blueprints.auth import bp as auth_bp
 
