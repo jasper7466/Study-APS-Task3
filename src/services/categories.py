@@ -157,4 +157,14 @@ class CategoriesService:
         )
         self.connection.commit()
 
+        # Удаляем категорию
+        self.connection.execute(
+            '''
+            DELETE FROM category
+            WHERE id = ? 
+            ''',
+            (category_id,)
+        )
+        self.connection.commit()
+
         return '', 200
