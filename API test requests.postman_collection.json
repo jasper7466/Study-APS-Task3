@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "8019e683-8406-4879-95f1-e50df3a90da4",
+		"_postman_id": "3ace4d91-936d-4ce0-bd7b-918d988261d4",
 		"name": "API test requests",
 		"description": "Коллекция тестовых запросов для проверки и отладки сервиса",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -76,7 +76,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "9984bb6a-2a74-4bca-858e-a0764d628514",
+						"id": "6de9a17c-f7d3-4a7f-91fe-04715994b819",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -86,7 +86,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "86b283b5-373d-425e-88cc-57a0b8507488",
+						"id": "3ff30d83-fd12-4d90-af7f-e82f89684290",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -190,6 +190,35 @@
 							"path": [
 								"auth",
 								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Logout (POST /logout)",
+			"item": [
+				{
+					"name": "Logout (200)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/auth/logout",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"auth",
+								"logout"
 							]
 						}
 					},
@@ -393,15 +422,15 @@
 			"protocolProfileBehavior": {}
 		},
 		{
-			"name": "Logout (POST /logout)",
+			"name": "Delete category (DELETE /categories/<id>)",
 			"item": [
 				{
-					"name": "Logout (200)",
+					"name": "Non existed category (404)",
 					"request": {
-						"method": "POST",
+						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:5000/auth/logout",
+							"raw": "http://127.0.0.1:5000/categories/65843216981",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -411,8 +440,274 @@
 							],
 							"port": "5000",
 							"path": [
-								"auth",
-								"logout"
+								"categories",
+								"65843216981"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Not user category (403)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/categories/2",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"categories",
+								"2"
+							]
+						},
+						"description": "Логин под пользователем с id = 2 (т.к. вторая категория у пользователя с id = 1)"
+					},
+					"response": []
+				},
+				{
+					"name": "Success delete (200)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/categories/2",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"categories",
+								"2"
+							]
+						},
+						"description": "Логин под пользователем с id = 1"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "New transactions (POST /transactions)",
+			"item": [
+				{
+					"name": "invalid category_id (404)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\": false,\r\n    \"amount\": \"54646.51\",\r\n    \"category_id\": 123\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Other user category access (403)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\": false,\r\n    \"amount\": \"54646.51\",\r\n    \"category_id\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Without optional parameters (201)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\": false,\r\n    \"amount\": \"54646.51\"\r\n}"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "With all parameters (201)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\": false,\r\n    \"amount\": \"54646.51\",\r\n    \"description\": \"Описание операции\",\r\n    \"category_id\": 1,\r\n    \"date\": 1592498650\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Without 1 important parameters (400)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Without all parametrs (400)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Negative amount (400)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\": false,\r\n    \"amount\": \"-54646.51\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
 							]
 						}
 					},

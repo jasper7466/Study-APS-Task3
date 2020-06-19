@@ -25,6 +25,11 @@ class CategoriesService:
         self.connection = connection
 
     def add_category(self, new_category):
+        """
+        Метод-сервис по добвалению категорий, осуществляющий основную работу с БД.
+        :param new_category: dict, содержащий поля, переданные в запросе + id пользователя
+        :return:
+        """
 
         user_id = new_category.get('user_id')
         name = new_category.get('name')
@@ -100,3 +105,66 @@ class CategoriesService:
             new_category['id'] = instance_id
             new_category.pop('user_id')
         return jsonify(new_category), 201
+
+    def delete_category(self, category):
+
+        user_id = category.get('user_id')
+        category_id = category.get('category_id')
+
+        # Проверка на существование категории
+        existed_category = self.connection.execute(
+            """
+            SELECT * FROM category
+            WHERE id = ?
+            """,
+            (category_id,)
+        )
+        existed_category = existed_category.fetchone()
+        if not existed_category:
+            raise CategoryNotExists()
+
+        # Проверка на принадлежность категории пользователю
+        existed_category = self.connection.execute(
+            """
+            SELECT * FROM category
+            WHERE user_id = ? AND id = ?
+            """,
+            (user_id, category_id)
+        )
+        existed_category = existed_category.fetchone()
+        if not existed_category:
+            raise OtherUserCategory()
+
+        # Переделываем все связанные операции в безкатегорийные
+        self.connection.execute(
+            '''
+            UPDATE operation
+            SET category_id = NULL
+            WHERE user_id = ? AND category_id = ?
+            ''',
+            (user_id, category_id)
+        )
+        self.connection.commit()
+
+        # Делаем дочерние категории родительскими
+        self.connection.execute(
+            '''
+            UPDATE category
+            SET parent_id = NULL
+            WHERE parent_id = ?
+            ''',
+            (category_id,)
+        )
+        self.connection.commit()
+
+        # Удаляем категорию
+        self.connection.execute(
+            '''
+            DELETE FROM category
+            WHERE id = ? 
+            ''',
+            (category_id,)
+        )
+        self.connection.commit()
+
+        return '', 200
