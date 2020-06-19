@@ -1,4 +1,6 @@
 import sqlite3 as sqlite
+from decimal import Decimal
+from exceptions import ServiceError
 from services.helper import update
 
 
@@ -6,11 +8,15 @@ class TransactionsServiceError(ServiceError):
     service = 'transactions'
 
 
-class TransactionDoesNotExistError(RegisterServiceError):
+class TransactionDoesNotExistError(TransactionsServiceError):
     pass
 
 
-class TransactionAccessDeniedError(RegisterServiceError):
+class TransactionAccessDeniedError(TransactionsServiceError):
+    pass
+
+
+class TransactionPatchError(TransactionsServiceError):
     pass
 
 
@@ -42,6 +48,38 @@ class TransactionsService:
         owner_id = transaction['user_id']
         return user_id == owner_id
 
+    def _parse_request(self, data):
+        """
+        Парсер специфичных полей запроса для дальнейшей
+        корректной работы с ними.
+        :param data: данные запроса
+        :return data: преобразованные данные запроса
+        """
+        type = data.get('type', None)
+        amount = data.get('amount', None)
+        if type is not None:
+            data['type'] = int(type)
+        if amount is not None:
+            amount = round(Decimal(amount), 2)
+            data['amount'] = amount
+        return data
+
+    def _parse_response(self, data):
+        """
+        Парсер специфичных полей выборки от БД для
+        формирования корректных ответов.
+        :param data: данные из БД
+        :return data: преобразованные данные для ответа
+        """
+        type = data.get('type', None)
+        amount = data.get('amount', None)
+        if type is not None:
+            data['type'] = bool(type)
+        if amount is not None:
+            data['amount'] = str(amount)
+        return data
+
+
     def patch(self, transaction_id, user_id, data):
         """
         Метод для редактирования существующей операции.
@@ -53,8 +91,11 @@ class TransactionsService:
         owner = self._is_owner(transaction_id, user_id)
         if not owner:
             raise TransactionAccessDeniedError
-        update('operation', data, transaction_id, self.connection)
 
-
-
-
+        data = self._parse_request(data)
+        is_patched = update('operation', data, transaction_id, self.connection)
+        if not is_patched:
+            raise TransactionPatchError
+        else:
+            patched = self._get_transaction(transaction_id)
+            return self._parse_response(patched)

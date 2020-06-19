@@ -34,7 +34,13 @@ def update(table, data, id, connection):
     :param data: словарь с новыми данными
     :param id: идентификатор обновляемой записи
     :param connection: соединение с БД
-    :return instance_id: идентификатор записи
+    :return bool: результат выполнения (True/False)
     """
     records = ', '.join(f'{key} = "{value}"' for key, value in data.items())
-    connection.execute(f'UPDATE {table} SET {records} WHERE id = {id}')
+    try:
+        connection.execute(f'UPDATE {table} SET {records} WHERE id = {id}')
+    except sqlite.IntegrityError:
+        connection.rollback()
+        return False
+    else:
+        return True

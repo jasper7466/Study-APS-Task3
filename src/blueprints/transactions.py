@@ -8,7 +8,9 @@ from database import db
 from services.decorators import auth_required
 from services.transactions import (
     TransactionsService,
-    TransactionDoesNotExistError
+    TransactionDoesNotExistError,
+    TransactionAccessDeniedError,
+    TransactionPatchError
 )
 
 bp = Blueprint('transactions', __name__)
@@ -31,15 +33,16 @@ class TransactionsView(MethodView):
         data = request.json
         with db.connection as con:
             service = TransactionsService(con)
-            response = service.patch(transaction_id, user['user_id'], data)
-            # Проверка на существование операции и принадлежность её пользователю
             try:
-                owner = service.is_owner(transaction_id, user['user_id'])
+                response = service.patch(transaction_id, user['id'], data)
             except TransactionDoesNotExistError:
                 return '', 404
+            except TransactionAccessDeniedError:
+                return '', 403
+            except TransactionPatchError:
+                return '', 500
             else:
-                if not owner:
-                    return '', 403
+                return response, 200
 
 
 bp.add_url_rule('/<int:transaction_id>', view_func=TransactionsView.as_view('transactions'))

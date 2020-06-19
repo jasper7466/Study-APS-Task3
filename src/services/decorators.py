@@ -12,7 +12,7 @@ def auth_required(view_func):
             return '', 401
         with db.connection as con:
             cur = con.execute(
-                'SELECT id, username '
+                'SELECT id '
                 'FROM user '
                 'WHERE id = ?',
                 (user_id,),
