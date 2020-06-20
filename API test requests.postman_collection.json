@@ -789,6 +789,104 @@
 				}
 			],
 			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "DELETE transaction(DELETE /transactions/<id>)",
+			"item": [
+				{
+					"name": "Success delete transaction (200)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions/7",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Other user transaction (403)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions/6",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions",
+								"6"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Nonexistent transaction (404)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions/123",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions",
+								"123"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Nonathorized (401)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions/7",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions",
+								"7"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
 		}
 	],
 	"protocolProfileBehavior": {}
