@@ -28,6 +28,14 @@ class TransactionAddingFailedError(TransactionServiceError):
     pass
 
 
+class TransactionNotExists(TransactionServiceError):
+    pass
+
+
+class OtherUserTransaction(TransactionServiceError):
+    pass
+
+
 class TransactionsService:
     def __init__(self, connection):
         self.connection = connection
@@ -108,3 +116,47 @@ class TransactionsService:
             new_transaction['amount'] = float(amount)
             new_transaction['date'] = date
         return jsonify(new_transaction)
+
+    def delete_transaction(self, delete_transaction):
+        """
+        Метод для удаления существующей транзакции
+        """
+        user_id = delete_transaction.get('user_id')
+        transaction_id = delete_transaction.get('transaction_id')
+
+        # Проверка на существование операции
+        cursor = self.connection.execute(
+            """
+            SELECT *
+            FROM operation
+            WHERE id = ?
+            """,
+            (transaction_id,),
+        )
+        cursor = cursor.fetchone()
+        if not cursor:
+            raise TransactionNotExists()
+
+        # Проверка на принадлежность операции пользователю
+        cursor = self.connection.execute(
+            """
+            SELECT *
+            FROM operation
+            WHERE id = ? AND user_id =?
+            """,
+            (transaction_id, user_id,),
+        )
+        cursor = cursor.fetchone()
+        if not cursor:
+            raise OtherUserTransaction()
+
+        # Удаляем операцию
+        self.connection.execute(
+            """
+            DELETE FROM operation
+            WHERE id = ?
+            """,
+            (transaction_id,),
+        )
+
+        return ''
