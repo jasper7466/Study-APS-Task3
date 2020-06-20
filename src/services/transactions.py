@@ -22,25 +22,26 @@ class TransactionAccessDeniedError(TransactionsServiceError):
 
 
 class TransactionPatchError(TransactionsServiceError):
-
-
-class MissingImportantFields(TransactionServiceError):
     pass
 
 
-class NegativeValue(TransactionServiceError):
+class MissingImportantFields(TransactionsServiceError):
     pass
 
 
-class CategoryNotExists(TransactionServiceError):
+class NegativeValue(TransactionsServiceError):
     pass
 
 
-class OtherUserCategory(TransactionServiceError):
+class CategoryNotExists(TransactionsServiceError):
     pass
 
 
-class TransactionAddingFailedError(TransactionServiceError):
+class OtherUserCategory(TransactionsServiceError):
+    pass
+
+
+class TransactionAddingFailedError(TransactionsServiceError):
     pass
 
 
@@ -102,7 +103,6 @@ class TransactionsService:
         if amount is not None:
             data['amount'] = str(amount)
         return data
-
 
     def patch(self, transaction_id, user_id, data):
         """
