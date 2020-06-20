@@ -108,6 +108,12 @@ class CategoriesService:
 
     def delete_category(self, category):
 
+        """
+        Метод-сервис по удалению категорий, осуществляющий основную работу с БД.
+        :param category: dict, содержащий поля, переданные в запросе + id пользователя
+        :return:
+        """
+
         user_id = category.get('user_id')
         category_id = category.get('category_id')
 
@@ -168,3 +174,31 @@ class CategoriesService:
         self.connection.commit()
 
         return '', 200
+
+    def get_category(self, category):
+
+        """
+        Метод-сервис по получению категорий, осуществляющий основную работу с БД
+        :param category: dict, содержащий поля, переданные в запросе + id пользователя
+        :return:
+        """
+
+        user_id = category.get('user_id')
+        category_name = category.get('name')
+
+        # Проверка на существование категории
+        existed_category = self.connection.execute(
+            """
+            SELECT * FROM category
+            WHERE name = ? AND user_id = ?
+            """,
+            (category_name, user_id)
+        )
+        existed_category = existed_category.fetchone()
+        if not existed_category:
+            raise CategoryNotExists()
+
+        existed_category = dict(existed_category)
+        existed_category.pop('user_id')
+        return jsonify(existed_category), 200
+
