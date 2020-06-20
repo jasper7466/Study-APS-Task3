@@ -5,6 +5,9 @@ from blueprints.transactions import bp as transactions_bp
 from database import db
 from flask import Flask
 
+from blueprints.register import bp as register_bp
+from blueprints.auth import bp as auth_bp
+from blueprints.transactions import bp as transactions_bp
 
 def create_app():
     """
@@ -17,6 +20,7 @@ def create_app():
     app.register_blueprint(register_bp, url_prefix='/register')
     app.register_blueprint(transactions_bp, url_prefix='/transactions')
     app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(transactions_bp, url_prefix='/transactions')
 
     db.init_app(app)
 

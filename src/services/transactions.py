@@ -1,30 +1,47 @@
-from exceptions import ServiceError
+import sqlite3 as sqlite
 from flask import jsonify
-from decimal import Decimal, ROUND_CEILING
 from datetime import datetime
+from decimal import (
+    Decimal,
+    ROUND_CEILING
+)
+from exceptions import ServiceError
+from services.helper import update
 
 
-class TransactionServiceError(ServiceError):
+class TransactionsServiceError(ServiceError):
     service = 'transactions'
 
 
-class MissingImportantFields(TransactionServiceError):
+class TransactionDoesNotExistError(TransactionsServiceError):
     pass
 
 
-class NegativeValue(TransactionServiceError):
+class TransactionAccessDeniedError(TransactionsServiceError):
     pass
 
 
-class CategoryNotExists(TransactionServiceError):
+class TransactionPatchError(TransactionsServiceError):
     pass
 
 
-class OtherUserCategory(TransactionServiceError):
+class MissingImportantFields(TransactionsServiceError):
     pass
 
 
-class TransactionAddingFailedError(TransactionServiceError):
+class NegativeValue(TransactionsServiceError):
+    pass
+
+
+class CategoryNotExists(TransactionsServiceError):
+    pass
+
+
+class OtherUserCategory(TransactionsServiceError):
+    pass
+
+
+class TransactionAddingFailedError(TransactionsServiceError):
     pass
 
 
@@ -39,6 +56,81 @@ class OtherUserTransaction(TransactionServiceError):
 class TransactionsService:
     def __init__(self, connection):
         self.connection = connection
+
+    def _get_transaction(self, transaction_id):
+        """
+        Метод для получения параметров операции по её идентификатору.
+        :param transaction_id: идентификатор операции
+        :return transaction: операция
+        """
+        cur = self.connection.execute(f'SELECT * FROM operation WHERE id = "{transaction_id}"')
+        transaction = cur.fetchone()
+        if not transaction:
+            raise TransactionDoesNotExistError(transaction_id)
+        else:
+            return dict(transaction)
+
+    def _is_owner(self, transaction_id, user_id):
+        """
+        Метод для проверки принадлежности операции пользователю.
+        :param user_id: идентификатор пользователя
+        :param transaction_id: идентификатор операции
+        :return is_owner: True/False
+        """
+        transaction = self._get_transaction(transaction_id)
+        owner_id = transaction['user_id']
+        return user_id == owner_id
+
+    def _parse_request(self, data):
+        """
+        Парсер специфичных полей запроса для дальнейшей
+        корректной работы с ними.
+        :param data: данные запроса
+        :return data: преобразованные данные запроса
+        """
+        type = data.get('type', None)
+        amount = data.get('amount', None)
+        if type is not None:
+            data['type'] = int(type)
+        if amount is not None:
+            amount = round(Decimal(amount), 2)
+            data['amount'] = amount
+        return data
+
+    def _parse_response(self, data):
+        """
+        Парсер специфичных полей выборки от БД для
+        формирования корректных ответов.
+        :param data: данные из БД
+        :return data: преобразованные данные для ответа
+        """
+        type = data.get('type', None)
+        amount = data.get('amount', None)
+        if type is not None:
+            data['type'] = bool(type)
+        if amount is not None:
+            data['amount'] = str(amount)
+        return data
+
+    def patch(self, transaction_id, user_id, data):
+        """
+        Метод для редактирования существующей операции.
+        :param transaction_id: идентификатор операции
+        :param user_id: идентификатор пользователя
+        :param data: обновляемые данные
+        :return response: сформированный ответ
+        """
+        owner = self._is_owner(transaction_id, user_id)
+        if not owner:
+            raise TransactionAccessDeniedError
+
+        data = self._parse_request(data)
+        is_patched = update('operation', data, transaction_id, self.connection)
+        if not is_patched:
+            raise TransactionPatchError
+        else:
+            patched = self._get_transaction(transaction_id)
+            return self._parse_response(patched)
 
     def add_transaction(self, new_transaction):
         """
