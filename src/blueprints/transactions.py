@@ -16,7 +16,7 @@ from services.transactions import (
 bp = Blueprint('transactions', __name__)
 
 
-class TransactionsView(MethodView):
+class TransactionView(MethodView):
     """
     Класс, представляющий часть API, отвечающую за работу с операциями.
     Каждый метод класса реализует обработку одного из запросов, результатом выполнения
@@ -45,4 +45,4 @@ class TransactionsView(MethodView):
                 return response, 200
 
 
-bp.add_url_rule('/<int:transaction_id>', view_func=TransactionsView.as_view('transactions'))
+bp.add_url_rule('/<int:transaction_id>', view_func=TransactionView.as_view('transaction'))
