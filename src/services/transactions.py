@@ -45,11 +45,11 @@ class TransactionAddingFailedError(TransactionsServiceError):
     pass
 
 
-class TransactionNotExists(TransactionServiceError):
+class TransactionNotExists(TransactionsServiceError):
     pass
 
 
-class OtherUserTransaction(TransactionServiceError):
+class OtherUserTransaction(TransactionsServiceError):
     pass
 
 
