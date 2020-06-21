@@ -45,11 +45,11 @@ class TransactionAddingFailedError(TransactionsServiceError):
     pass
 
 
-class TransactionNotExists(TransactionServiceError):
+class TransactionNotExists(TransactionsServiceError):
     pass
 
 
-class OtherUserTransaction(TransactionServiceError):
+class OtherUserTransaction(TransactionsServiceError):
     pass
 
 
@@ -251,4 +251,4 @@ class TransactionsService:
             (transaction_id,),
         )
 
-        return ''
+        return ''   # TODO странный return

@@ -33,7 +33,8 @@ class TransactionsView(MethodView):
     @auth_required
     def post(self, user):
         """
-        Обработчик POST-запроса на добавление новой операции
+        Обработчик POST-запроса на добавление новой операции.
+
         :return new_transaction: поля новой операции
         """
         request_json = request.json
@@ -58,7 +59,6 @@ class TransactionsView(MethodView):
                 return new_transaction, 201
 
 
-
 class TransactionView(MethodView):
     """
     Класс, представляющий часть API, отвечающую за работу с операциями.
@@ -69,6 +69,7 @@ class TransactionView(MethodView):
     def patch(self, transaction_id, user):
         """
         Обработчик PATCH-запроса на редактирование операции.
+
         :param transaction_id: идентификатор операции
         :param user: параметры авторизации
         :return response: сформированный ответ
@@ -90,7 +91,8 @@ class TransactionView(MethodView):
     @auth_required
     def delete(self, user, transaction_id):
         """
-        Обработчик DELETE-запроса на удаление существующей операции
+        Обработчик DELETE-запроса на удаление существующей операции.
+
         :param user: идентификатор авторизованного пользователя
         :param transaction_id: идентификатор удаляемой операции
         :return:
