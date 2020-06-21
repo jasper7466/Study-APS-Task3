@@ -237,7 +237,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"Тест 555666\"\n}\n",
+							"raw": "{\n\t\"name\": \"Test parent category\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -263,16 +263,16 @@
 					"response": []
 				},
 				{
-					"name": "Daughter categopry (201)",
+					"name": "Child category (201)",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"Тест 1266\",\n\t\"parent_id\": 1\n}",
+							"raw": "{\n\t\"name\": \"Test child category\",\n\t\"parent_id\": 1\n}",
 							"options": {
 								"raw": {
-									"language": "javascript"
+									"language": "json"
 								}
 							}
 						},
@@ -294,13 +294,13 @@
 					"response": []
 				},
 				{
-					"name": "Invalid parent_id (404)",
+					"name": "Invalid parent id (404)",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"Какой-то тест\",\n\t\"parent_id\": 9876576547\n}",
+							"raw": "{\n\t\"name\": \"Invalid parent id test\",\n\t\"parent_id\": 9876576547\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -331,7 +331,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"Какой-то тест\",\n\t\"parent_id\": 3\n}",
+							"raw": "{\n\t\"name\": \"Access denied test\",\n\t\"parent_id\": 5\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -388,13 +388,13 @@
 					"response": []
 				},
 				{
-					"name": "Unique name (409)",
+					"name": "Not unique name (409)",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"Тест2\",\n\t\"parent_id\": 2\n}",
+							"raw": "{\n\t\"name\": \"Рис\",\n\t\"parent_id\": null\n}",
 							"options": {
 								"raw": {
 									"language": "json"

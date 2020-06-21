@@ -7,11 +7,11 @@ from flask import (
 from flask.views import MethodView
 from services.categories import (
     CategoriesService,
-    CategoryAddingFailedError,
     CategoryDoesNotExistError,
-    OtherUserCategory,
+    CategoryCreateError,
     CategoryAccessDeniedError,
-    CategoryPatchError
+    CategoryPatchError,
+    CategoryFullCopyError
 )
 from services.decorators import auth_required
 
@@ -27,35 +27,41 @@ class CategoriesView(MethodView):
     @auth_required
     def post(self, user):
         """
-        Метод осуществляет добавление категории в дерево пользователя.
+        Обработчик PATCH-запроса на добавление категории в дерево пользователя.
 
-        :param user: id авторизованного пользователя
-        :return:
+        :param user: параметры авторизации
+        :return: сформированный ответ
         """
-        request_json = request.json
-        request_json['user_id'] = user['id']
+        data = request.json
+        data['user_id'] = user['id']
+
+        # Проверка на пустое тело запроса
+        if not data:
+            return '', 400
 
         with db.connection as con:
             service = CategoriesService(con)
-
             try:
-                new_category = service.add_category(request_json)
-            except CategoryAddingFailedError:
+                created = service.add_category(data)
+            except CategoryCreateError:
                 return '', 409
             except CategoryDoesNotExistError:
                 return '', 404
-            except OtherUserCategory:
+            except CategoryAccessDeniedError:
                 return '', 403
+            except CategoryFullCopyError:
+                existed = service.get_category(data)
+                return jsonify(existed), 200, {'Content-Type': 'application/json'}
             else:
-                return new_category
+                return jsonify(created), 201, {'Content-Type': 'application/json'}
 
     @auth_required
     def get(self, user):
         """
         Метод осуществляет получение категории из дерева пользователя.
 
-        :param user: id авторизованного пользователя
-        :return:
+        :param user: параметры авторизации
+        :return: сформированный ответ
         """
         request_json = request.json
         request_json['user_id'] = user['id']
@@ -64,11 +70,11 @@ class CategoriesView(MethodView):
             service = CategoriesService(con)
 
             try:
-                new_category = service.get_category(request_json)
+                category = service.get_category(request_json)
             except CategoryDoesNotExistError:
                 return '', 404
             else:
-                return new_category
+                return category, 200, {'Content-Type': 'application/json'}
 
 
 class CategoryView(MethodView):
@@ -80,11 +86,11 @@ class CategoryView(MethodView):
     @auth_required
     def delete(self, user, category_id):
         """
-        Метод осуществляет удаление категории из дерева пользователя.
+        Обработчик DELETE-запроса на удаление категории.
 
         :param category_id: идентификатор удаляемой категории
-        :param user: идентификатор авторизованного пользователя
-        :return response: сформированный ответ
+        :param user: параметры авторизации
+        :return: сформированный ответ
         """
         category_to_delete = {
             'user_id': user['id'],
@@ -96,7 +102,7 @@ class CategoryView(MethodView):
 
             try:
                 deleted_category = service.delete_category(category_to_delete)
-            except OtherUserCategory:
+            except CategoryAccessDeniedError:
                 return '', 403
             except CategoryDoesNotExistError:
                 return '', 404
@@ -110,7 +116,7 @@ class CategoryView(MethodView):
 
         :param user: параметры авторизации
         :param category_id: идентификатор редактируемой категории
-        :return response: сформированный ответ
+        :return: сформированный ответ
         """
         data = request.json
 
