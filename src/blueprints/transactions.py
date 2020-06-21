@@ -78,7 +78,7 @@ class TransactionView(MethodView):
         with db.connection as con:
             service = TransactionsService(con)
             try:
-                response = service.patch_category(transaction_id, user['id'], data)
+                response = service.patch_transaction(transaction_id, user['id'], data)
             except TransactionDoesNotExistError:
                 return '', 404
             except TransactionAccessDeniedError:
