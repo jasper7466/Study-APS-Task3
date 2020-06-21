@@ -28,7 +28,7 @@ class CategoriesView(MethodView):
     @auth_required
     def post(self, user):
         """
-        Обработчик PATCH-запроса на добавление категории в дерево пользователя.
+        Обработчик POST-запроса на добавление категории в дерево пользователя.
 
         :param user: параметры авторизации
         :return: сформированный ответ
@@ -60,7 +60,7 @@ class CategoriesView(MethodView):
     @auth_required
     def get(self, user):
         """
-        Метод осуществляет получение категории из дерева пользователя.
+        Обработчик GET-запроса на получение категории.
 
         :param user: параметры авторизации
         :return: сформированный ответ
