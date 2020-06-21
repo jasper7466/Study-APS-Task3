@@ -251,4 +251,4 @@ class TransactionsService:
             (transaction_id,),
         )
 
-        return ''
+        return ''   # TODO странный return
