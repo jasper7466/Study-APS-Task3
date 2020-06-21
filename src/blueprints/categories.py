@@ -7,11 +7,12 @@ from flask import (
 from flask.views import MethodView
 from services.categories import (
     CategoriesService,
-    CategoryAddingFailedError,
     CategoryDoesNotExistError,
-    OtherUserCategory,
+    CategoryCreateError,
     CategoryAccessDeniedError,
-    CategoryPatchError
+    CategoryPatchError,
+    CategoryFullCopyError,
+    CategoryDeleteError
 )
 from services.decorators import auth_required
 
@@ -27,48 +28,61 @@ class CategoriesView(MethodView):
     @auth_required
     def post(self, user):
         """
-        Метод осуществляет добавление категории в дерево пользователя.
+        Обработчик POST-запроса на добавление категории в дерево пользователя.
 
-        :param user: id авторизованного пользователя
-        :return:
+        :param user: параметры авторизации
+        :return: сформированный ответ
         """
-        request_json = request.json
-        request_json['user_id'] = user['id']
+        data = request.json
+
+        # Проверка на пустое тело запроса
+        if not data:
+            return '', 400
+
+        data['user_id'] = user['id']
 
         with db.connection as con:
             service = CategoriesService(con)
-
             try:
-                new_category = service.add_category(request_json)
-            except CategoryAddingFailedError:
+                created = service.create_category(data)
+            except CategoryCreateError:
                 return '', 409
             except CategoryDoesNotExistError:
                 return '', 404
-            except OtherUserCategory:
+            except CategoryAccessDeniedError:
                 return '', 403
+            except CategoryFullCopyError:
+                existed = service.get_category(data)
+                return jsonify(existed), 200, {'Content-Type': 'application/json'}
             else:
-                return new_category
+                return jsonify(created), 201, {'Content-Type': 'application/json'}
 
     @auth_required
     def get(self, user):
         """
-        Метод осуществляет получение категории из дерева пользователя.
+        Обработчик GET-запроса на получение категории.
 
-        :param user: id авторизованного пользователя
-        :return:
+        :param user: параметры авторизации
+        :return: сформированный ответ
         """
-        request_json = request.json
-        request_json['user_id'] = user['id']
+        data = request.json
+
+        # Проверка на пустое тело запроса
+        if not data:
+            return '', 400
+
+        data['user_id'] = user['id']
 
         with db.connection as con:
             service = CategoriesService(con)
-
             try:
-                new_category = service.get_category(request_json)
+                category = service.get_category(data)
             except CategoryDoesNotExistError:
                 return '', 404
+            except CategoryAccessDeniedError:
+                return '', 403
             else:
-                return new_category
+                return jsonify(category), 200, {'Content-Type': 'application/json'}
 
 
 class CategoryView(MethodView):
@@ -80,13 +94,13 @@ class CategoryView(MethodView):
     @auth_required
     def delete(self, user, category_id):
         """
-        Метод осуществляет удаление категории из дерева пользователя.
+        Обработчик DELETE-запроса на удаление категории.
 
         :param category_id: идентификатор удаляемой категории
-        :param user: идентификатор авторизованного пользователя
-        :return response: сформированный ответ
+        :param user: параметры авторизации
+        :return: сформированный ответ
         """
-        category_to_delete = {
+        data = {
             'user_id': user['id'],
             'category_id': category_id
         }
@@ -95,13 +109,15 @@ class CategoryView(MethodView):
             service = CategoriesService(con)
 
             try:
-                deleted_category = service.delete_category(category_to_delete)
-            except OtherUserCategory:
+                service.delete_category(data)
+            except CategoryAccessDeniedError:
                 return '', 403
             except CategoryDoesNotExistError:
                 return '', 404
+            except CategoryDeleteError:
+                return '', 409
             else:
-                return deleted_category
+                return '', 200, {'Content-Type': 'application/json'}
 
     @auth_required
     def patch(self, user, category_id):
@@ -110,7 +126,7 @@ class CategoryView(MethodView):
 
         :param user: параметры авторизации
         :param category_id: идентификатор редактируемой категории
-        :return response: сформированный ответ
+        :return: сформированный ответ
         """
         data = request.json
 
@@ -125,7 +141,7 @@ class CategoryView(MethodView):
         with db.connection as con:
             service = CategoriesService(con)
             try:
-                category = service.patch(data, category_id, user['id'])
+                category = service.patch_category(data, category_id, user['id'])
             except CategoryDoesNotExistError:
                 return '', 404
             except CategoryAccessDeniedError:
