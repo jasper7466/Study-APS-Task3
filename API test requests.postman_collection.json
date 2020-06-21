@@ -363,7 +363,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"Тест2\",\n\t\"parent_id\": 1\n}",
+							"raw": "{\n\t\"name\": \"Рис\",\n\t\"parent_id\": 1\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -468,7 +468,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\": \"puoihdf[pojkh\"\r\n}",
+							"raw": "{\r\n    \"name\": \"Неизвестная категория\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -551,7 +551,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:5000/categories/2",
+							"raw": "http://127.0.0.1:5000/categories/1",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -562,7 +562,7 @@
 							"port": "5000",
 							"path": [
 								"categories",
-								"2"
+								"1"
 							]
 						},
 						"description": "Логин под пользователем с id = 1"

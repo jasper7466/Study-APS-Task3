@@ -11,7 +11,8 @@ from services.categories import (
     CategoryCreateError,
     CategoryAccessDeniedError,
     CategoryPatchError,
-    CategoryFullCopyError
+    CategoryFullCopyError,
+    CategoryDeleteError
 )
 from services.decorators import auth_required
 
@@ -33,16 +34,17 @@ class CategoriesView(MethodView):
         :return: сформированный ответ
         """
         data = request.json
-        data['user_id'] = user['id']
 
         # Проверка на пустое тело запроса
         if not data:
             return '', 400
 
+        data['user_id'] = user['id']
+
         with db.connection as con:
             service = CategoriesService(con)
             try:
-                created = service.add_category(data)
+                created = service.create_category(data)
             except CategoryCreateError:
                 return '', 409
             except CategoryDoesNotExistError:
@@ -63,18 +65,24 @@ class CategoriesView(MethodView):
         :param user: параметры авторизации
         :return: сформированный ответ
         """
-        request_json = request.json
-        request_json['user_id'] = user['id']
+        data = request.json
+
+        # Проверка на пустое тело запроса
+        if not data:
+            return '', 400
+
+        data['user_id'] = user['id']
 
         with db.connection as con:
             service = CategoriesService(con)
-
             try:
-                category = service.get_category(request_json)
+                category = service.get_category(data)
             except CategoryDoesNotExistError:
                 return '', 404
+            except CategoryAccessDeniedError:
+                return '', 403
             else:
-                return category, 200, {'Content-Type': 'application/json'}
+                return jsonify(category), 200, {'Content-Type': 'application/json'}
 
 
 class CategoryView(MethodView):
@@ -92,7 +100,7 @@ class CategoryView(MethodView):
         :param user: параметры авторизации
         :return: сформированный ответ
         """
-        category_to_delete = {
+        data = {
             'user_id': user['id'],
             'category_id': category_id
         }
@@ -101,13 +109,15 @@ class CategoryView(MethodView):
             service = CategoriesService(con)
 
             try:
-                deleted_category = service.delete_category(category_to_delete)
+                service.delete_category(data)
             except CategoryAccessDeniedError:
                 return '', 403
             except CategoryDoesNotExistError:
                 return '', 404
+            except CategoryDeleteError:
+                return '', 409
             else:
-                return deleted_category
+                return '', 200, {'Content-Type': 'application/json'}
 
     @auth_required
     def patch(self, user, category_id):
@@ -131,7 +141,7 @@ class CategoryView(MethodView):
         with db.connection as con:
             service = CategoriesService(con)
             try:
-                category = service.patch(data, category_id, user['id'])
+                category = service.patch_category(data, category_id, user['id'])
             except CategoryDoesNotExistError:
                 return '', 404
             except CategoryAccessDeniedError:

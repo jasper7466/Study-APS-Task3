@@ -1,10 +1,9 @@
 import sqlite3 as sqlite
-
 from exceptions import ServiceError
-from flask import jsonify
 from services.helper import (
     insert,
-    update
+    update,
+    delete
 )
 
 
@@ -17,6 +16,10 @@ class CategoryDoesNotExistError(CategoryServiceError):
 
 
 class CategoryPatchError(CategoryServiceError):
+    pass
+
+
+class CategoryDeleteError(CategoryServiceError):
     pass
 
 
@@ -36,14 +39,14 @@ class CategoriesService:
     def __init__(self, connection):
         self.connection = connection
 
-    def patch(self, data, category_id, user_id):
+    def patch_category(self, data, category_id, user_id):
         """
         Метод, реализующий бизнес-логику эндпоинта редактирования категории.
 
         :param data: новые параметры категории
         :param category_id: идентификатор категории
         :param user_id: идентификатор пользователя
-        :return patched: параметры отредактированной категории
+        :return: параметры отредактированной категории
         """
         # Проверка на существование категории и её принадлежность пользователю
         self._is_owner(category_id, user_id)
@@ -76,12 +79,12 @@ class CategoriesService:
             patched.pop('user_id')
             return patched
 
-    def add_category(self, data):
+    def create_category(self, data):
         """
         Метод, реализующий бизнес-логику эндпоинта создания категории.
 
         :param data: параметры создаваемой категории
-        :return created: параметры созданной категории
+        :return: параметры созданной категории
         """
         # Получение полей запроса
         name = data.get('name', None)
@@ -118,99 +121,52 @@ class CategoriesService:
 
     def delete_category(self, category):
         """
-        Метод-сервис по удалению категорий, осуществляющий основную работу с БД.
+        Метод, реализующий бизнес-логику эндпоинта удаления категории.
 
-        :param category: dict, содержащий поля, переданные в запросе + id пользователя
-        :return:
+        :param category: параметры удаляемой категории
+        :return: nothing
         """
+        # Получение полей запроса
         user_id = category.get('user_id')
         category_id = category.get('category_id')
 
-        # Проверка на существование категории
-        existed_category = self.connection.execute(
-            """
-            SELECT * FROM category
-            WHERE id = ?
-            """,
-            (category_id,)
-        )
-        existed_category = existed_category.fetchone()
-        if not existed_category:
-            raise CategoryDoesNotExistError()
-
-        # Проверка на принадлежность категории пользователю
-        existed_category = self.connection.execute(
-            """
-            SELECT * FROM category
-            WHERE user_id = ? AND id = ?
-            """,
-            (user_id, category_id)
-        )
-        existed_category = existed_category.fetchone()
-        if not existed_category:
-            raise CategoryAccessDeniedError(category)
+        # Проверка на существование и принадлежность категории пользователю
+        self._is_owner(category_id, user_id)
 
         # Переделываем все связанные операции в безкатегорийные
-        self.connection.execute(
-            '''
-            UPDATE operation
-            SET category_id = NULL
-            WHERE user_id = ? AND category_id = ?
-            ''',
-            (user_id, category_id)
-        )
-        self.connection.commit()
+        data = {'category_id': None}
+        success = update('operation', data, category_id, self.connection, 'category_id')
+        if not success:
+            raise CategoryDeleteError
 
         # Делаем дочерние категории родительскими
-        self.connection.execute(
-            '''
-            UPDATE category
-            SET parent_id = NULL
-            WHERE parent_id = ?
-            ''',
-            (category_id,)
-        )
-        self.connection.commit()
+        data = {'parent_id': None}
+        success = update('category', data, category_id, self.connection, 'parent_id')
+        if not success:
+            raise CategoryDeleteError
 
         # Удаляем категорию
-        self.connection.execute(
-            '''
-            DELETE FROM category
-            WHERE id = ? 
-            ''',
-            (category_id,)
-        )
-        self.connection.commit()
+        success = delete('category', category_id, self.connection)
+        if not success:
+            raise CategoryDeleteError
 
-        return '', 200  # TODO вынести работу с кодами в bp
-
-    def get_category(self, category):
+    def get_category(self, data):
         """
-        Метод-сервис по получению категорий, осуществляющий основную работу с БД
+        Метод, реализующий бизнес-логику эндпоинта получения категории по её имени.
 
-        :param category: dict, содержащий поля, переданные в запросе + id пользователя
-        :return:
+        :param data: параметры запрашиваемой категории
+        :return: параметры категории
         """
-        user_id = category.get('user_id')
-        category_name = category.get('name')
+        # Получение категории и проверка на существование
+        category = self._get_category(data)
 
-        # Проверка на существование категории
-        existed_category = self.connection.execute(
-            """
-            SELECT * FROM category
-            WHERE name = ? AND user_id = ?
-            """,
-            (category_name, user_id)
-        )
-        existed_category = existed_category.fetchone()
-        if not existed_category:
-            raise CategoryDoesNotExistError()
+        # Проверка на существование и принадлежность категории пользователю
+        self._is_owner(category['id'], data['user_id'])
 
-        existed_category = dict(existed_category)
-        existed_category.pop('user_id')
-        if existed_category.get('parent_id') is None:
-            existed_category.pop('parent_id')
-        return dict(existed_category)   # TODO вынести работу с кодами в bp
+        category.pop('user_id')
+        if category.get('parent_id') is None:
+            category.pop('parent_id')
+        return dict(category)
 
     def _get_category(self, category):
         """
@@ -220,6 +176,7 @@ class CategoriesService:
         :param category: параметрами запроса
         :return: параметры запрашиваемой категории
         """
+        # Получение полей запроса
         user_id = category.get('user_id')
         name = category.get('name')
 
