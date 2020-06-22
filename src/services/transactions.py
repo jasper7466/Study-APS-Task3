@@ -114,7 +114,7 @@ class TransactionsService:
             data['amount'] = str(amount)
         return data
 
-    def patch(self, transaction_id, user_id, data):
+    def patch_transaction(self, transaction_id, user_id, data):
         """
         Метод для редактирования существующей операции.
         :param transaction_id: идентификатор операции
