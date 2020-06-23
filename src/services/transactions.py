@@ -126,12 +126,12 @@ class TransactionsService:
         :return: возвращает список словарей с id категорий в порядке обхода дерева.
         """
 
-        if category_id is None:
-            category_filter = 'WHERE user_id = ?'
-            values = (user_id,)
-        else:
-            category_filter = 'WHERE user_id = ? AND id = ?'
-            values = (user_id, category_id)
+        if category_id is None and topdown:
+            cursor = self.connection.execute('SELECT id FROM category WHERE user_id = ?', (user_id,))
+            cursor = cursor.fetchall()
+            return [dict(elem) for elem in cursor]
+        elif category_id is None and not topdown:
+            raise ValueError  # обход дерева вверх не зная начальной точки - "суперлогичная задача"
 
         if topdown:
             bypass_rule = 'WHERE c.parent_id = sc.id'
@@ -143,14 +143,14 @@ class TransactionsService:
         cursor = self.connection.execute(
             f'''
             WITH RECURSIVE sub_category(id, name, parent_id) AS (
-                SELECT id, name, parent_id FROM category {category_filter}
+                SELECT id, name, parent_id FROM category WHERE user_id = ? AND id = ?
                 UNION ALL
                 SELECT c.id, c.name, c.parent_id FROM category c, sub_category sc
                 {bypass_rule}
             )
             SELECT {what_to_select} FROM sub_category;
             ''',
-            values
+            (user_id, category_id)
         )
         cursor = cursor.fetchall()
         return [dict(elem) for elem in cursor]
@@ -303,5 +303,6 @@ class TransactionsService:
         category_id = transaction_filters.get('category_id')
 
         filtered_categories = self._get_categories(user_id, category_id)
+        print(filtered_categories)
 
         return []
