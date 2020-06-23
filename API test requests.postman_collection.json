@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "e43fb087-9948-4f1d-8729-d119d78d2135",
+		"_postman_id": "127cce20-fa5b-4335-8c09-a4881bdd26b0",
 		"name": "API test requests",
 		"description": "Коллекция тестовых запросов для проверки и отладки сервиса",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -76,7 +76,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "7f4e7f10-892a-45fc-b915-89295ae011a0",
+						"id": "9bdbd965-520f-431e-9a48-3a00ad0e7045",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -86,7 +86,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "904d69ad-d67e-45f9-ad46-a667e4cdd9bd",
+						"id": "681c2309-e89d-42aa-80f5-33c5378538ec",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -1261,7 +1261,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"parent_id\": null\r\n}",
+							"raw": "{\r\n    \"parent_id\": -1\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
