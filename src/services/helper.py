@@ -40,7 +40,6 @@ def update(table, data, id, connection, ref_id=None):
     :return: результат выполнения (True/False)
     """
     records = ', '.join(f'{key} = {quotes(value) if value else "NULL"}' for key, value in data.items())
-    print(records)
     try:
         connection.execute('PRAGMA foreign_keys = ON')
         connection.execute(f'UPDATE {table} SET {records} WHERE {quotes(ref_id) if ref_id else "id"} = {id}')
