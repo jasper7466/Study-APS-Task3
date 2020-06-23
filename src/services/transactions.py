@@ -198,7 +198,7 @@ class TransactionsService:
             INSERT INTO operation (type, amount, description, date, user_id, category_id)
             VALUES (?, ?, ?, ?, ?, ?)
             """,
-            (type_transaction, float(amount), description, date, user_id, category_id),
+            (type_transaction, str(amount), description, date, user_id, category_id),
         )
 
         transaction_id = cursor.lastrowid
@@ -207,7 +207,7 @@ class TransactionsService:
         else:
             new_transaction['id'] = transaction_id
             new_transaction.pop('user_id')
-            new_transaction['amount'] = float(amount)
+            new_transaction['amount'] = str(amount)
             new_transaction['date'] = date
         return jsonify(new_transaction)
 
