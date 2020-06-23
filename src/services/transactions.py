@@ -94,6 +94,8 @@ class TransactionsService:
             data['type'] = int(type)
         if amount is not None:
             amount = round(Decimal(amount), 2)
+            if amount < 0:
+                raise NegativeValue
             data['amount'] = amount
         return data
 

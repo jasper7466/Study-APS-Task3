@@ -75,6 +75,11 @@ class TransactionView(MethodView):
         :return response: сформированный ответ
         """
         data = request.json
+
+        # Проверка на пустое тело запроса
+        if not data:
+            return '', 400
+
         with db.connection as con:
             service = TransactionsService(con)
             try:
@@ -83,6 +88,8 @@ class TransactionView(MethodView):
                 return '', 404
             except TransactionAccessDeniedError:
                 return '', 403
+            except NegativeValue:
+                return '', 400
             except TransactionPatchError:
                 return '', 500
             else:
