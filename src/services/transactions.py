@@ -1,11 +1,11 @@
-import sqlite3 as sqlite
-from flask import jsonify
 from datetime import datetime
 from decimal import (
     Decimal,
     ROUND_CEILING
 )
+
 from exceptions import ServiceError
+from flask import jsonify
 from services.helper import update
 
 
@@ -113,6 +113,47 @@ class TransactionsService:
         if amount is not None:
             data['amount'] = str(amount)
         return data
+
+    def _get_categories(self, user_id, category_id, topdown=True):
+        """
+        Метод получения дерева категорий
+
+        :param user_id: id авторизарованного пользователя
+        :param category_id: id категории по которой проводится выборка
+        :param topdown: параметр, определяющий путь обхода дерева. При True происходит обход от category_id
+                        до конца дерева (т.е. вниз).
+                        При False происходи обход дерева от category_id до корня дерева (т.е. вверх)
+        :return: возвращает список словарей с id категорий в порядке обхода дерева.
+        """
+
+        if category_id is None:
+            category_filter = 'WHERE user_id = ?'
+            values = (user_id,)
+        else:
+            category_filter = 'WHERE user_id = ? AND id = ?'
+            values = (user_id, category_id)
+
+        if topdown:
+            bypass_rule = 'WHERE c.parent_id = sc.id'
+            what_to_select = 'id'
+        else:
+            bypass_rule = 'WHERE c.id = sc.parent_id'
+            what_to_select = 'id, name'
+
+        cursor = self.connection.execute(
+            f'''
+            WITH RECURSIVE sub_category(id, name, parent_id) AS (
+                SELECT id, name, parent_id FROM category {category_filter}
+                UNION ALL
+                SELECT c.id, c.name, c.parent_id FROM category c, sub_category sc
+                {bypass_rule}
+            )
+            SELECT {what_to_select} FROM sub_category;
+            ''',
+            values
+        )
+        cursor = cursor.fetchall()
+        return [dict(elem) for elem in cursor]
 
     def patch_transaction(self, transaction_id, user_id, data):
         """
@@ -254,3 +295,13 @@ class TransactionsService:
         )
 
         return ''   # TODO странный return
+
+    def get_transaction(self, transaction_filters, user_id):
+
+        #  это только заготовка редачить по своему усмотрению
+
+        category_id = transaction_filters.get('category_id')
+
+        filtered_categories = self._get_categories(user_id, category_id)
+
+        return []
