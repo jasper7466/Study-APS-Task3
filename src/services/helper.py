@@ -60,7 +60,7 @@ def delete(table, id, connection):
     :return: результат выполнения (True/False)
     """
     try:
-        #connection.execute('PRAGMA foreign_keys = ON')
+        connection.execute('PRAGMA foreign_keys = ON')
         connection.execute(f'DELETE FROM {table} WHERE id = {id}')
     except sqlite.IntegrityError:
         connection.rollback()

@@ -13,6 +13,10 @@ class TransactionsServiceError(ServiceError):
     service = 'transactions'
 
 
+class EmptyReportError(TransactionsServiceError):
+    pass
+
+
 class TransactionDoesNotExistError(TransactionsServiceError):
     pass
 
@@ -88,10 +92,10 @@ class TransactionsService:
         :param data: данные запроса
         :return data: преобразованные данные запроса
         """
-        type = data.get('type', None)
+        transaction_type = data.get('type', None)
         amount = data.get('amount', None)
         if type is not None:
-            data['type'] = int(type)
+            data['type'] = int(transaction_type)
         if amount is not None:
             amount = round(Decimal(amount), 2)
             if amount < 0:
@@ -106,10 +110,10 @@ class TransactionsService:
         :param data: данные из БД
         :return data: преобразованные данные для ответа
         """
-        type = data.get('type', None)
+        transaction_type = data.get('type', None)
         amount = data.get('amount', None)
         if type is not None:
-            data['type'] = bool(type)
+            data['type'] = bool(transaction_type)
         if amount is not None:
             data['amount'] = str(amount)
         return data
@@ -127,7 +131,7 @@ class TransactionsService:
         """
 
         if category_id is None and topdown:
-            cursor = self.connection.execute('SELECT id FROM category WHERE user_id = ?', (user_id,))
+            cursor = self.connection.execute('SELECT id, name FROM category WHERE user_id = ?', (user_id,))
             cursor = cursor.fetchall()
             return [dict(elem) for elem in cursor]
         elif category_id is None and not topdown:
@@ -295,6 +299,57 @@ class TransactionsService:
         )
 
         return ''   # TODO странный return
+
+    def _get_transactions(self, user_id, categories=[{'id': 1}]):   # TODO: убрать отладочную заглушку
+        """
+        Метод для получения сортированного списка операций по списку категорий,
+        подсчёта суммы отчёта и количества элементов отчёта.
+
+        :param user_id: парметры авторизации
+        :param categories: список идентификаторов категорий
+        :return: частично сформированный ответ
+        """
+        # Формируем условие
+        clause = 'OR '.join(f'category_id = {category["id"]}' for category in categories)
+
+        # Получаем сортрованный по дате список операций
+        cursor = self.connection.execute(f'''
+            SELECT id, date, type, description, amount, category_id
+            FROM operation
+            WHERE {clause}
+            ORDER BY date ASC
+        ''')
+        transactions = cursor.fetchall()
+
+        # Проверка на "пустой отчёт"
+        if transactions is None:
+            raise EmptyReportError
+        transactions = [dict(transaction) for transaction in transactions]
+
+        # Инициализация аккумулятора суммы, получение кол-ва элементов
+        total = 0
+        total_items = len(transactions)
+
+        for transaction in transactions:
+            # Формирование пути по категориям для операций
+            category_id = transaction.pop('category_id')
+            category_path = self._get_categories(user_id, category_id, topdown=False)
+            transaction['categories'] = category_path
+
+            # Подсчёт суммы по всему отчёту
+            amount = Decimal(transaction['amount'])
+            if bool(transaction['type']):
+                total += amount
+            else:
+                total -= amount
+
+        report = {
+            'operations': transactions,
+            'total': str(total),
+            'total_items': total_items
+        }
+
+        return report
 
     def get_transaction(self, transaction_filters, user_id):
 
