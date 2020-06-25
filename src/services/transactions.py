@@ -3,9 +3,10 @@ from decimal import (
     Decimal,
     ROUND_CEILING
 )
+from math import ceil
 
 from exceptions import ServiceError
-from flask import jsonify
+from flask import jsonify, url_for
 from services.helper import update
 
 
@@ -158,6 +159,53 @@ class TransactionsService:
         )
         cursor = cursor.fetchall()
         return [dict(elem) for elem in cursor]
+
+    def _get_links(self, filters, total_items):
+        """
+        Метод формирования ссылок на следующую и предыдущую страницу пагинации
+        с сохранением пользовательских фильтров
+
+        :param filters: dict изначальных query params
+        :param total_items: число всех полученных операций, исходя из фильтров
+        :return: dict содержащий 2 поля - next_link и prev_link. Одно из них может быть пустой строкой.
+        """
+
+        # не отрицаю что все эти вычисления надо вынести в основную функцию, но пока функции нет, будут здесь
+        page_size = int(filters.get('page_size'))
+        current_page = int(filters.get('page'))
+        if current_page is None:
+            current_page = 1
+        if page_size is None:
+            page_size = 20
+
+        pages = ceil(total_items / page_size)
+
+        links = {}
+
+        if current_page + 1 >= pages:
+            links['next_link'] = ''
+        else:
+            next_page = current_page + 1
+
+        if current_page - 1 <= 0:
+            links['prev_link'] = ''
+        else:
+            prev_page = current_page - 1
+
+        # копирование словаря с query params, просто потому что это имутабл дикт(кто это придумал, что за дебил)
+        filters_to_add = {}
+        for key, value in filters.items():
+            filters_to_add[key] = value
+
+        # формирование ссылок
+        if 'next_link' not in links:
+            filters_to_add['page'] = next_page
+            links['next_link'] = url_for('transactions.transactions', **filters_to_add, _external=True)
+        if 'prev_link' not in links:
+            filters_to_add['page'] = prev_page
+            links['prev_link'] = url_for('transactions.transactions', **filters_to_add, _external=True)
+
+        return links
 
     def patch_transaction(self, transaction_id, user_id, data):
         """
@@ -359,5 +407,7 @@ class TransactionsService:
 
         filtered_categories = self._get_categories(user_id, category_id)
         print(filtered_categories)
+
+        i_hate_links = self._get_links(transaction_filters, 100)
 
         return []
