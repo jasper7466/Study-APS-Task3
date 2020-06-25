@@ -1,10 +1,10 @@
+from database import db
 from flask import (
     Blueprint,
     request,
     jsonify
 )
 from flask.views import MethodView
-from database import db
 from services.decorators import auth_required
 from services.transactions import (
     TransactionsService,
@@ -17,9 +17,9 @@ from services.transactions import (
     OtherUserCategory,
     TransactionAddingFailedError,
     OtherUserTransaction,
-    TransactionNotExists
+    TransactionNotExists,
+    EmptyReportError
 )
-
 
 bp = Blueprint('transactions', __name__)
 
@@ -57,6 +57,21 @@ class TransactionsView(MethodView):
                 return '', 409
             else:
                 return new_transaction, 201
+
+    @auth_required
+    def get(self, user):
+
+        query_str = request.args
+
+        #  это только заготовка редачить по своему усмотрению
+        with db.connection as connection:
+            service = TransactionsService(connection)
+            try:
+                transactions = service._get_transactions(user['id'])
+            except EmptyReportError:
+                return '', 403
+            else:
+                return jsonify(transactions), 200, {'Content-Type': 'application/json'}
 
 
 class TransactionView(MethodView):

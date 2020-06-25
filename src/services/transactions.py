@@ -1,16 +1,21 @@
-import sqlite3 as sqlite
-from flask import jsonify
 from datetime import datetime
 from decimal import (
     Decimal,
     ROUND_CEILING
 )
+from math import ceil
+
 from exceptions import ServiceError
+from flask import jsonify, url_for
 from services.helper import update
 
 
 class TransactionsServiceError(ServiceError):
     service = 'transactions'
+
+
+class EmptyReportError(TransactionsServiceError):
+    pass
 
 
 class TransactionDoesNotExistError(TransactionsServiceError):
@@ -88,10 +93,10 @@ class TransactionsService:
         :param data: данные запроса
         :return data: преобразованные данные запроса
         """
-        type = data.get('type', None)
+        transaction_type = data.get('type', None)
         amount = data.get('amount', None)
         if type is not None:
-            data['type'] = int(type)
+            data['type'] = int(transaction_type)
         if amount is not None:
             amount = round(Decimal(amount), 2)
             if amount < 0:
@@ -106,13 +111,101 @@ class TransactionsService:
         :param data: данные из БД
         :return data: преобразованные данные для ответа
         """
-        type = data.get('type', None)
+        transaction_type = data.get('type', None)
         amount = data.get('amount', None)
         if type is not None:
-            data['type'] = bool(type)
+            data['type'] = bool(transaction_type)
         if amount is not None:
             data['amount'] = str(amount)
         return data
+
+    def _get_categories(self, user_id, category_id, topdown=True):
+        """
+        Метод получения дерева категорий
+
+        :param user_id: id авторизарованного пользователя
+        :param category_id: id категории по которой проводится выборка
+        :param topdown: параметр, определяющий путь обхода дерева. При True происходит обход от category_id
+                        до конца дерева (т.е. вниз).
+                        При False происходи обход дерева от category_id до корня дерева (т.е. вверх)
+        :return: возвращает список словарей с id категорий в порядке обхода дерева.
+        """
+
+        if category_id is None and topdown:
+            cursor = self.connection.execute('SELECT id, name FROM category WHERE user_id = ?', (user_id,))
+            cursor = cursor.fetchall()
+            return [dict(elem) for elem in cursor]
+        elif category_id is None and not topdown:
+            raise ValueError  # обход дерева вверх не зная начальной точки - "суперлогичная задача"
+
+        if topdown:
+            bypass_rule = 'WHERE c.parent_id = sc.id'
+            what_to_select = 'id'
+        else:
+            bypass_rule = 'WHERE c.id = sc.parent_id'
+            what_to_select = 'id, name'
+
+        cursor = self.connection.execute(
+            f'''
+            WITH RECURSIVE sub_category(id, name, parent_id) AS (
+                SELECT id, name, parent_id FROM category WHERE user_id = ? AND id = ?
+                UNION ALL
+                SELECT c.id, c.name, c.parent_id FROM category c, sub_category sc
+                {bypass_rule}
+            )
+            SELECT {what_to_select} FROM sub_category;
+            ''',
+            (user_id, category_id)
+        )
+        cursor = cursor.fetchall()
+        return [dict(elem) for elem in cursor]
+
+    def _get_links(self, filters, total_items):
+        """
+        Метод формирования ссылок на следующую и предыдущую страницу пагинации
+        с сохранением пользовательских фильтров
+
+        :param filters: dict изначальных query params
+        :param total_items: число всех полученных операций, исходя из фильтров
+        :return: dict содержащий 2 поля - next_link и prev_link. Одно из них может быть пустой строкой.
+        """
+
+        # не отрицаю что все эти вычисления надо вынести в основную функцию, но пока функции нет, будут здесь
+        page_size = int(filters.get('page_size'))
+        current_page = int(filters.get('page'))
+        if current_page is None:
+            current_page = 1
+        if page_size is None:
+            page_size = 20
+
+        pages = ceil(total_items / page_size)
+
+        links = {}
+
+        if current_page + 1 >= pages:
+            links['next_link'] = ''
+        else:
+            next_page = current_page + 1
+
+        if current_page - 1 <= 0:
+            links['prev_link'] = ''
+        else:
+            prev_page = current_page - 1
+
+        # копирование словаря с query params, просто потому что это имутабл дикт(кто это придумал, что за дебил)
+        filters_to_add = {}
+        for key, value in filters.items():
+            filters_to_add[key] = value
+
+        # формирование ссылок
+        if 'next_link' not in links:
+            filters_to_add['page'] = next_page
+            links['next_link'] = url_for('transactions.transactions', **filters_to_add, _external=True)
+        if 'prev_link' not in links:
+            filters_to_add['page'] = prev_page
+            links['prev_link'] = url_for('transactions.transactions', **filters_to_add, _external=True)
+
+        return links
 
     def patch_transaction(self, transaction_id, user_id, data):
         """
@@ -254,3 +347,67 @@ class TransactionsService:
         )
 
         return ''   # TODO странный return
+
+    def _get_transactions(self, user_id, categories=[{'id': 1}]):   # TODO: убрать отладочную заглушку
+        """
+        Метод для получения сортированного списка операций по списку категорий,
+        подсчёта суммы отчёта и количества элементов отчёта.
+
+        :param user_id: парметры авторизации
+        :param categories: список идентификаторов категорий
+        :return: частично сформированный ответ
+        """
+        # Формируем условие
+        clause = 'OR '.join(f'category_id = {category["id"]}' for category in categories)
+
+        # Получаем сортрованный по дате список операций
+        cursor = self.connection.execute(f'''
+            SELECT id, date, type, description, amount, category_id
+            FROM operation
+            WHERE {clause}
+            ORDER BY date ASC
+        ''')
+        transactions = cursor.fetchall()
+
+        # Проверка на "пустой отчёт"
+        if transactions is None:
+            raise EmptyReportError
+        transactions = [dict(transaction) for transaction in transactions]
+
+        # Инициализация аккумулятора суммы, получение кол-ва элементов
+        total = 0
+        total_items = len(transactions)
+
+        for transaction in transactions:
+            # Формирование пути по категориям для операций
+            category_id = transaction.pop('category_id')
+            category_path = self._get_categories(user_id, category_id, topdown=False)
+            transaction['categories'] = category_path
+
+            # Подсчёт суммы по всему отчёту
+            amount = Decimal(transaction['amount'])
+            if bool(transaction['type']):
+                total += amount
+            else:
+                total -= amount
+
+        report = {
+            'operations': transactions,
+            'total': str(total),
+            'total_items': total_items
+        }
+
+        return report
+
+    def get_transaction(self, transaction_filters, user_id):
+
+        #  это только заготовка редачить по своему усмотрению
+
+        category_id = transaction_filters.get('category_id')
+
+        filtered_categories = self._get_categories(user_id, category_id)
+        print(filtered_categories)
+
+        i_hate_links = self._get_links(transaction_filters, 100)
+
+        return []

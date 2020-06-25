@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "127cce20-fa5b-4335-8c09-a4881bdd26b0",
+		"_postman_id": "971a920a-8afd-4feb-b7c9-ebfb39cff91a",
 		"name": "API test requests",
 		"description": "Коллекция тестовых запросов для проверки и отладки сервиса",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -76,7 +76,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "9bdbd965-520f-431e-9a48-3a00ad0e7045",
+						"id": "f8030844-c185-47fd-9a32-6c60d70cd7ed",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -86,7 +86,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "681c2309-e89d-42aa-80f5-33c5378538ec",
+						"id": "bf717827-ed50-474f-90b3-77548e59d589",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -1261,7 +1261,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"parent_id\": -1\r\n}",
+							"raw": "{\r\n    \"parent_id\": null\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1281,6 +1281,34 @@
 							"path": [
 								"categories",
 								"4"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Transactions report (GET /transactions)",
+			"item": [
+				{
+					"name": "Blank qs request success (200)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
 							]
 						}
 					},
