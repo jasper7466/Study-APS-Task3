@@ -18,7 +18,8 @@ from services.transactions import (
     TransactionAddingFailedError,
     OtherUserTransaction,
     TransactionNotExists,
-    EmptyReportError
+    EmptyReportError,
+    PageReportNotExist
 )
 
 bp = Blueprint('transactions', __name__)
@@ -60,18 +61,26 @@ class TransactionsView(MethodView):
 
     @auth_required
     def get(self, user):
+        """
+        Обработчик GET-запроса на получение отчета с заданными query-параметрами.
 
+        :return new_transaction: поля новой операции
+        """
         query_str = request.args
-
-        #  это только заготовка редачить по своему усмотрению
         with db.connection as connection:
             service = TransactionsService(connection)
             try:
-                transactions = service._get_transactions(user['id'])
-            except EmptyReportError:
+                report = service.get_transaction(query_str, user['id'])
+            except CategoryNotExists:
+                return '', 404
+            except OtherUserCategory:
                 return '', 403
+            except EmptyReportError:
+                return '', 404
+            except PageReportNotExist:
+                return '', 404
             else:
-                return jsonify(transactions), 200, {'Content-Type': 'application/json'}
+                return jsonify(report), 200, {'Content-Type': 'application/json'}
 
 
 class TransactionView(MethodView):

@@ -58,6 +58,10 @@ class OtherUserTransaction(TransactionsServiceError):
     pass
 
 
+class PageReportNotExist(TransactionsServiceError):
+    pass
+
+
 class TransactionsService:
     def __init__(self, connection):
         self.connection = connection
@@ -85,6 +89,48 @@ class TransactionsService:
         transaction = self._get_transaction(transaction_id)
         owner_id = transaction['user_id']
         return user_id == owner_id
+
+    def _is_owner_category(self, category_id, user_id):
+        """
+        Метод для проверки принадлежности операции пользователю.
+        :param user_id: идентификатор пользователя
+        :param category_id: идентификатор операции
+        :return is_owner: True/False
+        """
+        cursor = self.connection.execute(
+            """
+            SELECT *
+            FROM category
+            WHERE id = ? AND user_id = ?
+            """,
+            (category_id, user_id,),
+        )
+        cursor = cursor.fetchone()
+        if cursor is None:
+            return False
+        else:
+            return True
+
+    def _category_exist(self, category_id):
+        """
+        Метод для проверки на существование категории
+
+        :param category_id: идентификатор проверяемой категории
+        :return : bool переменную True - категория существует; False - категория не существует
+        """
+        cursor = self.connection.execute(
+            """
+            SELECT *
+            FROM category
+            WHERE id = ?
+            """,
+            (category_id,),
+        )
+        cursor = cursor.fetchone()
+        if cursor is None:
+            return False
+        else:
+            return True
 
     def _parse_request(self, data):
         """
@@ -131,6 +177,17 @@ class TransactionsService:
         :return: возвращает список словарей с id категорий в порядке обхода дерева.
         """
 
+        # Проверка на существование категории, если она указана
+        if category_id:
+            category_exist = self._category_exist(category_id)
+            if not category_exist:
+                raise CategoryNotExists()
+
+        if category_id and user_id:
+            owner = self._is_owner_category(category_id, user_id)
+            if not owner:
+                raise OtherUserCategory()
+
         if category_id is None and topdown:
             cursor = self.connection.execute('SELECT id, name FROM category WHERE user_id = ?', (user_id,))
             cursor = cursor.fetchall()
@@ -155,34 +212,25 @@ class TransactionsService:
             )
             SELECT {what_to_select} FROM sub_category;
             ''',
-            (user_id, category_id)
+            (user_id, category_id,),
         )
         cursor = cursor.fetchall()
         return [dict(elem) for elem in cursor]
 
-    def _get_links(self, filters, total_items):
+    def _get_links(self, filters, current_page, pages):
         """
         Метод формирования ссылок на следующую и предыдущую страницу пагинации
         с сохранением пользовательских фильтров
 
         :param filters: dict изначальных query params
-        :param total_items: число всех полученных операций, исходя из фильтров
+        :param current_page: страница, которая отображается в данный момент времени
+        :param pages: количество страниц в отчет
         :return: dict содержащий 2 поля - next_link и prev_link. Одно из них может быть пустой строкой.
         """
 
-        # не отрицаю что все эти вычисления надо вынести в основную функцию, но пока функции нет, будут здесь
-        page_size = int(filters.get('page_size'))
-        current_page = int(filters.get('page'))
-        if current_page is None:
-            current_page = 1
-        if page_size is None:
-            page_size = 20
-
-        pages = ceil(total_items / page_size)
-
         links = {}
 
-        if current_page + 1 >= pages:
+        if current_page == pages:
             links['next_link'] = ''
         else:
             next_page = current_page + 1
@@ -210,6 +258,7 @@ class TransactionsService:
     def patch_transaction(self, transaction_id, user_id, data):
         """
         Метод для редактирования существующей операции.
+
         :param transaction_id: идентификатор операции
         :param user_id: идентификатор пользователя
         :param data: обновляемые данные
@@ -230,6 +279,7 @@ class TransactionsService:
     def add_transaction(self, new_transaction):
         """
         Метод для создания новой операции
+
         :param new_transaction: поля новой операции операции
         :return new_transaction: новая операция
         """
@@ -346,50 +396,71 @@ class TransactionsService:
             (transaction_id,),
         )
 
-        return ''   # TODO странный return
+        return ''  # TODO странный return
 
-    def _get_transactions(self, user_id, categories=[{'id': 1}]):   # TODO: убрать отладочную заглушку
+    def _get_transactions(self, user_id, categories, page_size, offset_param, from_date, to_date, missing_category):
         """
         Метод для получения сортированного списка операций по списку категорий,
         подсчёта суммы отчёта и количества элементов отчёта.
 
         :param user_id: парметры авторизации
         :param categories: список идентификаторов категорий
+        :param page_size: количество отобразаемых записей на странице
+        :param offset_param: параметр для сдвига в выборке операций
+        :param from_date: параметр указывающий с какой даты делать выборку
+        :param to_date: параметр указывающий по какую дату делать выборку
+        :param missing_category: параметр указывающий необходимо ли включать в выборку безкатегорийные операции
         :return: частично сформированный ответ
         """
         # Формируем условие
-        clause = 'OR '.join(f'category_id = {category["id"]}' for category in categories)
+        clause = ' OR '.join(f'category_id = {category["id"]}' for category in categories)
+        if missing_category:
+            clause = f'({clause} OR (category_id IS NULL))'
+        if from_date:
+            clause = clause + f' AND (date>={from_date})'
+        if to_date:
+            clause = clause + f' AND (date<={to_date})'
 
-        # Получаем сортрованный по дате список операций
-        cursor = self.connection.execute(f'''
+        # формируем основное тело запроса
+        sql_request = f'''
             SELECT id, date, type, description, amount, category_id
             FROM operation
-            WHERE {clause}
+            WHERE {clause} AND user_id = {user_id}
             ORDER BY date ASC
-        ''')
+        '''
+        cursor = self.connection.execute(sql_request)
         transactions = cursor.fetchall()
 
         # Проверка на "пустой отчёт"
         if transactions is None:
             raise EmptyReportError
-        transactions = [dict(transaction) for transaction in transactions]
 
         # Инициализация аккумулятора суммы, получение кол-ва элементов
         total = 0
         total_items = len(transactions)
-
+        # Подсчёт суммы по всему отчёту
         for transaction in transactions:
-            # Формирование пути по категориям для операций
-            category_id = transaction.pop('category_id')
-            category_path = self._get_categories(user_id, category_id, topdown=False)
-            transaction['categories'] = category_path
-
-            # Подсчёт суммы по всему отчёту
             amount = Decimal(transaction['amount'])
             if bool(transaction['type']):
                 total += amount
             else:
                 total -= amount
+
+        # Добавление в зарос параметров LIMIT и OFFSET для пагинации
+        sql_request = sql_request + f'LIMIT {page_size} OFFSET {offset_param}'
+        cursor = self.connection.execute(sql_request)
+        transactions = cursor.fetchall()
+        transactions = [dict(transaction) for transaction in transactions]
+
+        for transaction in transactions:
+            # Формирование пути по категориям для операций
+            if transaction['category_id'] is not None:
+                category_id = transaction.pop('category_id')
+                category_path = self._get_categories(user_id, category_id, topdown=False)
+                transaction['categories'] = category_path
+            else:
+                transaction.pop('category_id')
+                transaction['categories'] = []
 
         report = {
             'operations': transactions,
@@ -400,14 +471,68 @@ class TransactionsService:
         return report
 
     def get_transaction(self, transaction_filters, user_id):
+        """
+        Метод для получения полного отчета, при заданных пользовательских условиях.
 
-        #  это только заготовка редачить по своему усмотрению
-
+        :param transaction_filters: словар, включаущий в себя query-параметры
+        :param user_id: идентификатор авторизованного пользователя
+        :return report: Полный отчет включает в себя:
+                        Список операций, удовлетворяющих пользовательским условиям;
+                        Сумму по всему отчёту;
+                        Количество элементов в отчёте;
+                        Количество страниц в отчёте;
+                        Максимальное количество элементов на странице;
+                        Текущую страницу отчёта;
+                        Ссылку на получение следующей страницы отчёта;
+                        Ссылку на получение предыдущей страницы отчёта.
+        """
         category_id = transaction_filters.get('category_id')
+        from_date = transaction_filters.get('from')
+        to_date = transaction_filters.get('to')
+        period = transaction_filters.get('period')
+        page_size = transaction_filters.get('page_size')
+        current_page = transaction_filters.get('page')
+
+        # Проверка важных входных объектов, при их отсутствии устанавливаются значения по умолчанию
+        if category_id is None:
+            missing_category = True
+        else:
+            category_id = int(category_id)
+            missing_category = False
+
+        if current_page is None:
+            current_page = 1
+        else:
+            current_page = int(current_page)
+
+        if page_size is None:
+            page_size = 20
+        else:
+            page_size = int(page_size)
+
+        if from_date:
+            from_date = int(from_date)
+
+        if to_date:
+            to_date = int(to_date)
+        offset_param = (current_page-1) * page_size
 
         filtered_categories = self._get_categories(user_id, category_id)
-        print(filtered_categories)
+        report = self._get_transactions(user_id, filtered_categories, page_size, offset_param, from_date, to_date,
+                                        missing_category)
+        pages = ceil(report['total_items'] / page_size)
 
-        i_hate_links = self._get_links(transaction_filters, 100)
+        if current_page > pages:
+            raise PageReportNotExist
 
-        return []
+        links = self._get_links(transaction_filters, current_page, pages)
+
+        if links['prev_link']:
+            report['prev_page'] = links['prev_link']
+        if links['next_link']:
+            report['next_page'] = links['next_link']
+
+        report['total_pages'] = pages
+        report['page'] = current_page
+        report['page_size'] = page_size
+        return report
