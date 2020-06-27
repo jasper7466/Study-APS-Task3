@@ -18,7 +18,8 @@ from services.transactions import (
     TransactionAddingFailedError,
     OtherUserTransaction,
     TransactionNotExists,
-    EmptyReportError
+    EmptyReportError,
+    TransactionInvalidPeriodError
 )
 
 bp = Blueprint('transactions', __name__)
@@ -60,14 +61,20 @@ class TransactionsView(MethodView):
 
     @auth_required
     def get(self, user):
+        """
+        Обработчик GET-запроса на получение отчёта по операциям.
 
+        :param user: параметры авторизации
+        :return: сформированный ответ
+        """
         query_str = request.args
 
         #  это только заготовка редачить по своему усмотрению
         with db.connection as connection:
             service = TransactionsService(connection)
             try:
-                transactions = service._get_transactions(user['id'])
+                #transactions = service._get_transactions(user['id'])    # TODO отладочный код
+                transactions = service._get_period('week');     # TODO отладочный код
             except EmptyReportError:
                 return '', 403
             else:
@@ -87,7 +94,7 @@ class TransactionView(MethodView):
 
         :param transaction_id: идентификатор операции
         :param user: параметры авторизации
-        :return response: сформированный ответ
+        :return: сформированный ответ
         """
         data = request.json
 
