@@ -1,10 +1,10 @@
-from datetime import datetime
+import calendar
+from datetime import datetime, timedelta, date#, time as dt_time
 from decimal import (
     Decimal,
     ROUND_CEILING
 )
 from math import ceil
-
 from exceptions import ServiceError
 from flask import jsonify, url_for
 from services.helper import update
@@ -57,8 +57,12 @@ class TransactionNotExists(TransactionsServiceError):
 class OtherUserTransaction(TransactionsServiceError):
     pass
 
-
+  
 class PageReportNotExist(TransactionsServiceError):
+    pass
+
+
+class TransactionInvalidPeriodError(TransactionsServiceError):
     pass
 
 
@@ -467,8 +471,182 @@ class TransactionsService:
             'total': str(total),
             'total_items': total_items
         }
-
         return report
+
+    def _week(self, reference=datetime.today()):
+        """
+        Утилита для получения границ текщей недели.
+
+        :param reference: опорная дата (по умолчанию - сегодня)
+        :return: {'from': date_from, 'to': date_to} (в стандарте GMT)
+        """
+        result = dict()
+        result['from'] = reference + timedelta(0 - reference.weekday())
+        result['to'] = reference + timedelta(7 - reference.weekday())
+        return result
+
+    def _last_week(self, reference=datetime.today()):
+        """
+        Утилита для получения границ прошлой недели.
+
+        :param reference: опорная дата (по умолчанию - сегодня)
+        :return: {'from': date_from, 'to': date_to} (в стандарте GMT)
+        """
+        result = dict()
+        result['from'] = reference + timedelta(0 - reference.weekday() - 7)
+        result['to'] = reference + timedelta(7 - reference.weekday() - 7)
+        return result
+
+    def _month(self, reference=datetime.today()):
+        """
+        Утилита для получения границ текщего месяца.
+
+        :param reference: опорная дата (по умолчанию - сегодня)
+        :return: {'from': date_from, 'to': date_to} (в стандарте GMT)
+        """
+        result = dict()
+
+        if reference.month == 12:   # Смена года для границы 'to'
+            month = 1
+            year = reference.year + 1
+        else:
+            month = reference.month + 1
+            year = reference.year
+
+        result['from'] = reference.replace(day=1)
+        result['to'] = reference.replace(day=1, month=month, year=year)
+        return result
+
+    def _last_month(self, reference=datetime.today()):
+        """
+        Утилита для получения границ прошлого месяца.
+
+        :param reference: опорная дата (по умолчанию - сегодня)
+        :return: {'from': date_from, 'to': date_to} (в стандарте GMT)
+        """
+        result = dict()
+
+        if reference.month == 1:    # Смена года для границы 'from'
+            month = 12
+            year = reference.year - 1
+        else:
+            month = reference.month - 1
+            year = reference.year
+
+        result['from'] = reference.replace(day=1, month=month, year=year)
+        result['to'] = reference.replace(day=1)
+        return result
+
+    def _quarter(self, reference=datetime.today()):
+        """
+        Утилита для получения границ текщего квартала.
+
+        :param reference: опорная дата (по умолчанию - сегодня)
+        :return: {'from': date_from, 'to': date_to} (в стандарте GMT)
+        """
+        result = dict()
+
+        quarter = (reference.month - 1) // 3
+        month_from = quarter * 3 + 1
+        month_to = month_from + 3
+        year = reference.year
+
+        if quarter == 3:        # Смена года для границы 'to'
+            month_to = 1
+            year = reference.year + 1
+
+        result['from'] = reference.replace(day=1, month=month_from)
+        result['to'] = reference.replace(day=1, month=month_to, year=year)
+
+        return result
+
+    def _last_quarter(self, reference=datetime.today()):
+        """
+        Утилита для получения границ прошлого квартала.
+
+        :param reference: опорная дата (по умолчанию - сегодня)
+        :return: {'from': date_from, 'to': date_to} (в стандарте GMT)
+        """
+        result = dict()
+
+        quarter = (reference.month - 1) // 3
+        year = reference.year
+
+        if quarter == 0:        # Смена года для границы 'from'
+            quarter = 3
+            year = reference.year - 1
+        else:
+            quarter = quarter - 1
+
+        month_from = quarter * 3 + 1
+        month_to = month_from + 3
+
+        if quarter == 3:        # Смена месяца для границы 'to'
+            month_to = 1
+
+        result['from'] = reference.replace(day=1, month=month_from, year=year)
+        result['to'] = reference.replace(day=1, month=month_to)
+
+        return result
+
+    def _year(self, reference=datetime.today()):
+        """
+        Утилита для получения границ текщего года.
+
+        :param reference: опорная дата (по умолчанию - сегодня)
+        :return: {'from': date_from, 'to': date_to} (в стандарте GMT)
+        """
+        result = dict()
+        year = reference.year + 1
+        result['from'] = reference.replace(day=1, month=1)
+        result['to'] = reference.replace(day=1, month=1, year=year)
+        return result
+
+    def _last_year(self, reference=datetime.today()):
+        """
+        Утилита для получения границ прошлого года.
+
+        :param reference: опорная дата (по умолчанию - сегодня)
+        :return: {'from': date_from, 'to': date_to} (в стандарте GMT)
+        """
+        result = dict()
+        year = reference.year - 1
+        result['from'] = reference.replace(day=1, month=1, year=year)
+        result['to'] = reference.replace(day=1, month=1)
+        return result
+
+    def _get_period(self, period):
+        """
+        Утилита для формирования границ временного интервала по заданному типу.
+
+        :param period: тип интервала (week, last_week, month, last_month, quarter, last_quarter, year, last_year)
+        :return: {'from': date_from, 'to': date_to} (стандарт UTC, формат timestamp)
+        """
+        if period == 'week':                    # Период - текущая неделя
+            result = self._week()
+        elif period == 'last_week':             # Период - прошлая неделя
+            result = self._last_week()
+        elif period == 'month':                 # Период - текущий месяц
+            result = self._month()
+        elif period == 'last_month':            # Период - прошлый месяц
+            result = self._last_month()
+        elif period == 'quarter':               # Период - текущий квартал
+            result = self._quarter()
+        elif period == 'last_quarter':          # Период - прошлый квартал
+            result = self._last_quarter()
+        elif period == 'year':                  # Период - текущий год
+            result = self._year()
+        elif period == 'last_year':             # Период - прошлый год
+            result = self._last_year()
+        else:
+            raise TransactionInvalidPeriodError
+
+        # Сброс времени и преобразование в UTC timestamp
+        for key in result:
+            result[key] = result[key].replace(hour=0, minute=0, second=0, microsecond=0)
+            result[key] = calendar.timegm(result[key].utctimetuple())
+
+        return result
 
     def get_transaction(self, transaction_filters, user_id):
         """

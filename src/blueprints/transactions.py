@@ -19,7 +19,8 @@ from services.transactions import (
     OtherUserTransaction,
     TransactionNotExists,
     EmptyReportError,
-    PageReportNotExist
+    PageReportNotExist,
+    TransactionInvalidPeriodError
 )
 
 bp = Blueprint('transactions', __name__)
@@ -62,9 +63,10 @@ class TransactionsView(MethodView):
     @auth_required
     def get(self, user):
         """
-        Обработчик GET-запроса на получение отчета с заданными query-параметрами.
+        Обработчик GET-запроса на получение отчёта по операциям.
 
-        :return new_transaction: поля новой операции
+        :param user: параметры авторизации
+        :return: сформированный ответ
         """
         query_str = request.args
         with db.connection as connection:
@@ -96,7 +98,7 @@ class TransactionView(MethodView):
 
         :param transaction_id: идентификатор операции
         :param user: параметры авторизации
-        :return response: сформированный ответ
+        :return: сформированный ответ
         """
         data = request.json
 
