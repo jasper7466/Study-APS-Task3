@@ -81,6 +81,8 @@ class TransactionsView(MethodView):
                 return '', 404
             except PageReportNotExist:
                 return '', 404
+            except TransactionInvalidPeriodError:
+                return '', 400
             else:
                 return jsonify(report), 200, {'Content-Type': 'application/json'}
 

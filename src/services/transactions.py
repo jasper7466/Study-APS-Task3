@@ -423,7 +423,7 @@ class TransactionsService:
         if from_date:
             clause = clause + f' AND (date>={from_date})'
         if to_date:
-            clause = clause + f' AND (date<={to_date})'
+            clause = clause + f' AND (date<{to_date})'
 
         # формируем основное тело запроса
         sql_request = f'''
@@ -654,7 +654,7 @@ class TransactionsService:
 
         :param transaction_filters: словар, включаущий в себя query-параметры
         :param user_id: идентификатор авторизованного пользователя
-        :return report: Полный отчет включает в себя:
+        :return:        Полный отчет включает в себя:
                         Список операций, удовлетворяющих пользовательским условиям;
                         Сумму по всему отчёту;
                         Количество элементов в отчёте;
@@ -667,7 +667,7 @@ class TransactionsService:
         category_id = transaction_filters.get('category_id')
         from_date = transaction_filters.get('from')
         to_date = transaction_filters.get('to')
-        period = transaction_filters.get('period')
+        period = transaction_filters.get('period', None)
         page_size = transaction_filters.get('page_size')
         current_page = transaction_filters.get('page')
 
@@ -694,6 +694,11 @@ class TransactionsService:
         if to_date:
             to_date = int(to_date)
         offset_param = (current_page-1) * page_size
+
+        if period is not None:
+            range = self._get_period(period)
+            from_date = range['from']
+            to_date = range['to']
 
         filtered_categories = self._get_categories(user_id, category_id)
         report = self._get_transactions(user_id, filtered_categories, page_size, offset_param, from_date, to_date,
