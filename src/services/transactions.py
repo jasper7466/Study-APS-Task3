@@ -94,7 +94,7 @@ class TransactionsService:
         Метод, реализующий бизнес-логику эндпоинта получения полного отчета
         при заданных пользовательских условиях.
 
-        :param transaction_filters: словар, включаущий в себя query-параметры
+        :param transaction_filters: словарь, включаущий в себя query-параметры
         :param user_id: идентификатор авторизованного пользователя
         :return:        Полный отчет включает в себя:
                         Список операций, удовлетворяющих пользовательским условиям;
@@ -299,7 +299,7 @@ class TransactionsService:
         """
         transaction_type = data.get('type', None)
         amount = data.get('amount', None)
-        if type is not None:
+        if transaction_type is not None:
             data['type'] = bool(transaction_type)
         if amount is not None:
             data['amount'] = str(amount)
@@ -459,6 +459,8 @@ class TransactionsService:
             else:
                 transaction.pop('category_id')
                 transaction['categories'] = []
+            # Преобразование специфичных полей операции
+            transaction = self._parse_response(transaction)
 
         report = {
             'operations': transactions,
@@ -481,19 +483,6 @@ class TransactionsService:
         return result
 
     @staticmethod
-    def _last_week(reference=datetime.today()):
-        """
-        Утилита для получения границ прошлой недели.
-
-        :param reference: опорная дата (по умолчанию - сегодня)
-        :return: {'from': date_from, 'to': date_to} (в стандарте GMT)
-        """
-        result = dict()
-        result['from'] = reference + timedelta(0 - reference.weekday() - 7)
-        result['to'] = reference + timedelta(7 - reference.weekday() - 7)
-        return result
-
-    @staticmethod
     def _month(reference=datetime.today()):
         """
         Утилита для получения границ текущего месяца.
@@ -512,27 +501,6 @@ class TransactionsService:
 
         result['from'] = reference.replace(day=1)
         result['to'] = reference.replace(day=1, month=month, year=year)
-        return result
-
-    @staticmethod
-    def _last_month(reference=datetime.today()):
-        """
-        Утилита для получения границ прошлого месяца.
-
-        :param reference: опорная дата (по умолчанию - сегодня)
-        :return: {'from': date_from, 'to': date_to} (в стандарте GMT)
-        """
-        result = dict()
-
-        if reference.month == 1:    # Смена года для границы 'from'
-            month = 12
-            year = reference.year - 1
-        else:
-            month = reference.month - 1
-            year = reference.year
-
-        result['from'] = reference.replace(day=1, month=month, year=year)
-        result['to'] = reference.replace(day=1)
         return result
 
     @staticmethod
@@ -603,20 +571,6 @@ class TransactionsService:
         result['to'] = reference.replace(day=1, month=1, year=year)
         return result
 
-    @staticmethod
-    def _last_year(reference=datetime.today()):
-        """
-        Утилита для получения границ прошлого года.
-
-        :param reference: опорная дата (по умолчанию - сегодня)
-        :return: {'from': date_from, 'to': date_to} (в стандарте GMT)
-        """
-        result = dict()
-        year = reference.year - 1
-        result['from'] = reference.replace(day=1, month=1, year=year)
-        result['to'] = reference.replace(day=1, month=1)
-        return result
-
     def _get_period(self, period):
         """
         Утилита для формирования границ временного интервала по заданному типу периода.
@@ -627,11 +581,15 @@ class TransactionsService:
         if period == 'week':                    # Период - текущая неделя
             result = self._week()
         elif period == 'last_week':             # Период - прошлая неделя
-            result = self._last_week()
+            shift = datetime.today() + timedelta(-7)
+            result = self._week(shift)
         elif period == 'month':                 # Период - текущий месяц
             result = self._month()
         elif period == 'last_month':            # Период - прошлый месяц
-            result = self._last_month()
+            now = datetime.today()
+            month_size = calendar.monthrange(now.year, now.month)[1]
+            shift = now + timedelta(days=-month_size)
+            result = self._month(shift)
         elif period == 'quarter':               # Период - текущий квартал
             result = self._quarter()
         elif period == 'last_quarter':          # Период - прошлый квартал
@@ -639,7 +597,9 @@ class TransactionsService:
         elif period == 'year':                  # Период - текущий год
             result = self._year()
         elif period == 'last_year':             # Период - прошлый год
-            result = self._last_year()
+            now = datetime.today()
+            shift = now.replace(day=1, year=now.year-1)
+            result = self._year(shift)
         else:
             raise TransactionInvalidPeriodError
 
