@@ -58,7 +58,7 @@ class TransactionsView(MethodView):
             except TransactionAddingFailedError:
                 return '', 409
             else:
-                return new_transaction, 201
+                return jsonify(new_transaction), 201, {'Content-Type': 'application/json'}
 
     @auth_required
     def get(self, user):
@@ -121,7 +121,7 @@ class TransactionView(MethodView):
             except TransactionPatchError:
                 return '', 500
             else:
-                return response, 200
+                return jsonify(response), 200, {'Content-Type': 'application/json'}
               
     @auth_required
     def delete(self, user, transaction_id):
@@ -141,13 +141,13 @@ class TransactionView(MethodView):
             service = TransactionsService(connection)
 
             try:
-                deleted_transaction = service.delete_transaction(data_to_delete)
+                service.delete_transaction(data_to_delete)
             except OtherUserTransaction:
                 return '', 403
             except TransactionNotExists:
                 return '', 404
             else:
-                return deleted_transaction, 200
+                return '', 200
 
 
 bp.add_url_rule('', view_func=TransactionsView.as_view('transactions'))

@@ -1,7 +1,8 @@
 from database import db
 from flask import (
     Blueprint,
-    request
+    request,
+    jsonify
 )
 from flask.views import MethodView
 from services.register import (
@@ -28,7 +29,7 @@ class RegisterView(MethodView):
             except RegistrationFailedError:
                 return '', 409
             else:
-                return new_user, 201, {'Content-Type': 'application/json'}
+                return jsonify(new_user), 201, {'Content-Type': 'application/json'}
 
 
 bp.add_url_rule('', view_func=RegisterView.as_view('register'))
