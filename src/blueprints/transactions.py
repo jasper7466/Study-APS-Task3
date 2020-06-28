@@ -145,6 +145,8 @@ class TransactionView(MethodView):
                 return '', 403
             except TransactionDoesNotExistError:
                 return '', 404
+            except DataBaseConflictError:
+                return '', 409
             else:
                 return '', 200
 
