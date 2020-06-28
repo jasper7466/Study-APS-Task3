@@ -6,7 +6,7 @@ from decimal import (
 )
 from math import ceil
 from exceptions import ServiceError
-from flask import jsonify, url_for
+from flask import url_for
 from services.helper import update
 
 
@@ -360,7 +360,7 @@ class TransactionsService:
             new_transaction.pop('user_id')
             new_transaction['amount'] = str(amount)
             new_transaction['date'] = date
-        return jsonify(new_transaction)
+        return new_transaction
 
     def delete_transaction(self, delete_transaction):
         """
