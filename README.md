@@ -46,19 +46,19 @@ Antida Python School. Итоговое задание по курсу. Учеб�
 </details>
 
 ## Техническое задание
-Сформированное на основе формального описания задачи техническое задание: [PDF](https://github.com/jasper7466/Study-APS-Task3/assets/Rev.1.1.pdf)
+Сформированное на основе формального описания задачи техническое задание: [PDF](https://github.com/jasper7466/Study-APS-Task3/tree/develop/assets/Rev.1.1.pdf)
 
 ## Проектирование базы данных
 Изображения моделей, получившихся в ходе проектирования базы данных:
 
 Концептуальная
-![Концептуальная](https://github.com/jasper7466/Study-APS-Task3/assets/%D0%9A%D0%BE%D0%BD%D1%86%D0%B5%D0%BF%D1%82%D1%83%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F%20%D0%BC%D0%BE%D0%B4%D0%B5%D0%BB%D1%8C.png)
+![Концептуальная](https://github.com/jasper7466/Study-APS-Task3/tree/develop/assets/%D0%9A%D0%BE%D0%BD%D1%86%D0%B5%D0%BF%D1%82%D1%83%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F%20%D0%BC%D0%BE%D0%B4%D0%B5%D0%BB%D1%8C.png)
 
 Логическая
-![Логическая](https://github.com/jasper7466/Study-APS-Task3/assets/%D0%9B%D0%BE%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B0%D1%8F%20%D0%BC%D0%BE%D0%B4%D0%B5%D0%BB%D1%8C.png)
+![Логическая](https://github.com/jasper7466/Study-APS-Task3/tree/develop/assets/%D0%9B%D0%BE%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B0%D1%8F%20%D0%BC%D0%BE%D0%B4%D0%B5%D0%BB%D1%8C.png)
 
 Физическая
-![Физическая](https://github.com/jasper7466/Study-APS-Task3/assets/%D0%A4%D0%B8%D0%B7%D0%B8%D1%86%D0%B5%D1%81%D0%BA%D0%B0%D1%8F%20%D0%BC%D0%BE%D0%B4%D0%B5%D0%BB%D1%8C.png)
+![Физическая](https://github.com/jasper7466/Study-APS-Task3/tree/develop/assets/%D0%A4%D0%B8%D0%B7%D0%B8%D1%86%D0%B5%D1%81%D0%BA%D0%B0%D1%8F%20%D0%BC%D0%BE%D0%B4%D0%B5%D0%BB%D1%8C.png)
 
 ## Описание API
 
