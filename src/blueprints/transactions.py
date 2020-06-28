@@ -77,7 +77,7 @@ class TransactionsView(MethodView):
                 report = service.get_transaction(query_str, user['id'])
             except CategoryDoesNotExistError:
                 return '', 404
-            except TransactionAccessDeniedError or CategoryAccessDeniedError:
+            except CategoryAccessDeniedError:
                 return '', 403
             except EmptyReportError:
                 return '', 404
@@ -114,9 +114,13 @@ class TransactionView(MethodView):
             service = TransactionsService(con)
             try:
                 response = service.patch_transaction(transaction_id, user['id'], data)
-            except TransactionDoesNotExistError or CategoryDoesNotExistError:
+            except TransactionDoesNotExistError:
                 return '', 404
-            except TransactionAccessDeniedError or CategoryAccessDeniedError:
+            except CategoryDoesNotExistError:
+                return '', 404
+            except TransactionAccessDeniedError:
+                return '', 403
+            except CategoryAccessDeniedError:
                 return '', 403
             except NegativeValue:
                 return '', 400
