@@ -77,7 +77,7 @@ class TransactionsView(MethodView):
                 report = service.get_transaction(query_str, user['id'])
             except CategoryDoesNotExistError:
                 return '', 404
-            except TransactionAccessDeniedError:
+            except TransactionAccessDeniedError or CategoryAccessDeniedError:
                 return '', 403
             except EmptyReportError:
                 return '', 404
