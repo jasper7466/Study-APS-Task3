@@ -22,10 +22,6 @@ def insert(table, data, connection):
         instance_id = cur.lastrowid
     except sqlite.IntegrityError:
         connection.rollback()
-        print('CONFLICT')
-        print(data)
-        print(keys)
-        print(values)
         return None
     else:
         return instance_id
