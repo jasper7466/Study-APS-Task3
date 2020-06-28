@@ -9,6 +9,7 @@ from flask import Flask
 def create_app():
     """
     Функция создания приложения
+
     :return: app
     """
     app = Flask(__name__)

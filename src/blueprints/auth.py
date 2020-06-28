@@ -17,11 +17,17 @@ bp = Blueprint('auth', __name__)
 def login():
     """
     Обработчик POST-запроса на авторизацию пользователя.
-    :return response: сформированный ответ
+
+    :return: сформированный ответ
     """
-    request_json = request.json
-    email = request_json.get('email')
-    password = request_json.get('password')
+    data = request.json
+
+    # Проверка на пустое тело запроса
+    if not data:
+        return '', 400
+
+    email = data.get('email')
+    password = data.get('password')
     with db.connection as con:
         service = AuthService(con)
         # Попытка авторизации
@@ -40,6 +46,7 @@ def login():
 def logout():
     """
     Обработчик POST-запроса на завершение сессии.
+
     :return: nothing
     """
     session.pop('user_id', None)

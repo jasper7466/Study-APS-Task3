@@ -10,17 +10,14 @@ from services.transactions import (
     TransactionsService,
     TransactionDoesNotExistError,
     TransactionAccessDeniedError,
-    TransactionPatchError,
-    MissingImportantFields,
+    TransactionInvalidPeriodError,
+    MissingRequiredFields,
     NegativeValue,
-    CategoryNotExists,
-    OtherUserCategory,
-    TransactionAddingFailedError,
-    OtherUserTransaction,
-    TransactionNotExists,
+    CategoryDoesNotExistError,
+    CategoryAccessDeniedError,
     EmptyReportError,
     PageReportNotExist,
-    TransactionInvalidPeriodError
+    DataBaseConflictError
 )
 
 bp = Blueprint('transactions', __name__)
@@ -37,28 +34,33 @@ class TransactionsView(MethodView):
         """
         Обработчик POST-запроса на добавление новой операции.
 
-        :return new_transaction: поля новой операции
+        :return: параметры новой операции
         """
-        request_json = request.json
-        request_json['user_id'] = user['id']
+        data = request.json
+
+        # Проверка на пустое тело запроса
+        if not data:
+            return '', 400
+
+        data['user_id'] = user['id']
 
         with db.connection as connection:
             service = TransactionsService(connection)
 
             try:
-                new_transaction = service.add_transaction(request_json)
-            except MissingImportantFields:
+                new_transaction = service.add_transaction(data)
+            except MissingRequiredFields:
                 return '', 400
-            except CategoryNotExists:
+            except CategoryDoesNotExistError:
                 return '', 404
-            except OtherUserCategory:
+            except CategoryAccessDeniedError:
                 return '', 403
             except NegativeValue:
                 return '', 400
-            except TransactionAddingFailedError:
+            except DataBaseConflictError:
                 return '', 409
             else:
-                return new_transaction, 201
+                return jsonify(new_transaction), 201, {'Content-Type': 'application/json'}
 
     @auth_required
     def get(self, user):
@@ -73,9 +75,9 @@ class TransactionsView(MethodView):
             service = TransactionsService(connection)
             try:
                 report = service.get_transaction(query_str, user['id'])
-            except CategoryNotExists:
+            except CategoryDoesNotExistError:
                 return '', 404
-            except OtherUserCategory:
+            except TransactionAccessDeniedError:
                 return '', 403
             except EmptyReportError:
                 return '', 404
@@ -112,16 +114,16 @@ class TransactionView(MethodView):
             service = TransactionsService(con)
             try:
                 response = service.patch_transaction(transaction_id, user['id'], data)
-            except TransactionDoesNotExistError:
+            except TransactionDoesNotExistError or CategoryDoesNotExistError:
                 return '', 404
-            except TransactionAccessDeniedError:
+            except TransactionAccessDeniedError or CategoryAccessDeniedError:
                 return '', 403
             except NegativeValue:
                 return '', 400
-            except TransactionPatchError:
-                return '', 500
+            except DataBaseConflictError:
+                return '', 409
             else:
-                return response, 200
+                return jsonify(response), 200, {'Content-Type': 'application/json'}
               
     @auth_required
     def delete(self, user, transaction_id):
@@ -130,24 +132,24 @@ class TransactionView(MethodView):
 
         :param user: идентификатор авторизованного пользователя
         :param transaction_id: идентификатор удаляемой операции
-        :return:
+        :return: сформированный ответ
         """
-        data_to_delete = {
-            'user_id': user['id'],
-            'transaction_id': transaction_id
-        }
+        data = dict()
+        data['user_id'] = user['id']
+        data['transaction_id'] = transaction_id
 
         with db.connection as connection:
             service = TransactionsService(connection)
-
             try:
-                deleted_transaction = service.delete_transaction(data_to_delete)
-            except OtherUserTransaction:
+                service.delete_transaction(data)
+            except TransactionAccessDeniedError:
                 return '', 403
-            except TransactionNotExists:
+            except TransactionDoesNotExistError:
                 return '', 404
+            except DataBaseConflictError:
+                return '', 409
             else:
-                return deleted_transaction, 200
+                return '', 200
 
 
 bp.add_url_rule('', view_func=TransactionsView.as_view('transactions'))
