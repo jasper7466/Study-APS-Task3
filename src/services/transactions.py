@@ -1,5 +1,5 @@
 import calendar
-from datetime import datetime, timedelta, date#, time as dt_time
+from datetime import datetime, timedelta, date
 from decimal import (
     Decimal,
     ROUND_CEILING
@@ -139,7 +139,8 @@ class TransactionsService:
         else:
             return True
 
-    def _parse_request(self, data):
+    @staticmethod
+    def _parse_request(data):
         """
         Парсер специфичных полей запроса из JSON-формата в Python-формат для дальнейшей
         корректной работы с ними.
@@ -158,7 +159,8 @@ class TransactionsService:
             data['amount'] = amount
         return data
 
-    def _parse_response(self, data):
+    @staticmethod
+    def _parse_response(data):
         """
         Парсер специфичных полей выборки от БД для формирования корректных JSON-ответов.
 
@@ -173,13 +175,13 @@ class TransactionsService:
             data['amount'] = str(amount)
         return data
 
-    def _get_categories(self, user_id, category_id, topdown=True):
+    def _get_categories(self, user_id, category_id, top_down=True):
         """
         Метод получения дерева категорий
 
         :param user_id: идентификатор пользователя
         :param category_id: идентификатор категории, по которой проводится выборка
-        :param topdown: параметр, определяющий путь обхода дерева. При True происходит обход от category_id
+        :param top_down: параметр, определяющий путь обхода дерева. При True происходит обход от category_id
                         до конца дерева (т.е. вниз).
                         При False происходит обход дерева от category_id до корня дерева (т.е. вверх)
         :return: возвращает список словарей с параметрами категорий в порядке обхода дерева.
@@ -196,14 +198,14 @@ class TransactionsService:
             if not owner:
                 raise OtherUserCategory()
 
-        if category_id is None and topdown:
+        if category_id is None and top_down:
             cursor = self.connection.execute('SELECT id, name FROM category WHERE user_id = ?', (user_id,))
             cursor = cursor.fetchall()
             return [dict(elem) for elem in cursor]
-        elif category_id is None and not topdown:
+        elif category_id is None and not top_down:
             raise ValueError  # обход дерева вверх не зная начальной точки - "суперлогичная задача"
 
-        if topdown:
+        if top_down:
             bypass_rule = 'WHERE c.parent_id = sc.id'
             what_to_select = 'id'
         else:
@@ -225,7 +227,8 @@ class TransactionsService:
         cursor = cursor.fetchall()
         return [dict(elem) for elem in cursor]
 
-    def _get_links(self, filters, current_page, pages):
+    @staticmethod
+    def _get_links(filters, current_page, pages):
         """
         Метод формирования ссылок на следующую и предыдущую страницу пагинации
         с сохранением пользовательских фильтров.
@@ -237,6 +240,8 @@ class TransactionsService:
         """
 
         links = {}
+        next_page = 1
+        prev_page = 1
 
         if current_page == pages:
             links['next_link'] = ''
@@ -465,7 +470,7 @@ class TransactionsService:
             # Формирование пути по категориям для операций
             if transaction['category_id'] is not None:
                 category_id = transaction.pop('category_id')
-                category_path = self._get_categories(user_id, category_id, topdown=False)
+                category_path = self._get_categories(user_id, category_id, top_down=False)
                 transaction['categories'] = category_path
             else:
                 transaction.pop('category_id')
@@ -478,7 +483,8 @@ class TransactionsService:
         }
         return report
 
-    def _week(self, reference=datetime.today()):
+    @staticmethod
+    def _week(reference=datetime.today()):
         """
         Утилита для получения границ текущей недели.
 
@@ -490,7 +496,8 @@ class TransactionsService:
         result['to'] = reference + timedelta(7 - reference.weekday())
         return result
 
-    def _last_week(self, reference=datetime.today()):
+    @staticmethod
+    def _last_week(reference=datetime.today()):
         """
         Утилита для получения границ прошлой недели.
 
@@ -502,7 +509,8 @@ class TransactionsService:
         result['to'] = reference + timedelta(7 - reference.weekday() - 7)
         return result
 
-    def _month(self, reference=datetime.today()):
+    @staticmethod
+    def _month(reference=datetime.today()):
         """
         Утилита для получения границ текущего месяца.
 
@@ -522,7 +530,8 @@ class TransactionsService:
         result['to'] = reference.replace(day=1, month=month, year=year)
         return result
 
-    def _last_month(self, reference=datetime.today()):
+    @staticmethod
+    def _last_month(reference=datetime.today()):
         """
         Утилита для получения границ прошлого месяца.
 
@@ -542,7 +551,8 @@ class TransactionsService:
         result['to'] = reference.replace(day=1)
         return result
 
-    def _quarter(self, reference=datetime.today()):
+    @staticmethod
+    def _quarter(reference=datetime.today()):
         """
         Утилита для получения границ текущего квартала.
 
@@ -565,7 +575,8 @@ class TransactionsService:
 
         return result
 
-    def _last_quarter(self, reference=datetime.today()):
+    @staticmethod
+    def _last_quarter(reference=datetime.today()):
         """
         Утилита для получения границ прошлого квартала.
 
@@ -594,7 +605,8 @@ class TransactionsService:
 
         return result
 
-    def _year(self, reference=datetime.today()):
+    @staticmethod
+    def _year(reference=datetime.today()):
         """
         Утилита для получения границ текущего года.
 
@@ -607,7 +619,8 @@ class TransactionsService:
         result['to'] = reference.replace(day=1, month=1, year=year)
         return result
 
-    def _last_year(self, reference=datetime.today()):
+    @staticmethod
+    def _last_year(reference=datetime.today()):
         """
         Утилита для получения границ прошлого года.
 
