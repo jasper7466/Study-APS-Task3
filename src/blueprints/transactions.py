@@ -39,14 +39,19 @@ class TransactionsView(MethodView):
 
         :return: параметры новой операции
         """
-        request_json = request.json
-        request_json['user_id'] = user['id']
+        data = request.json
+
+        # Проверка на пустое тело запроса
+        if not data:
+            return '', 400
+
+        data['user_id'] = user['id']
 
         with db.connection as connection:
             service = TransactionsService(connection)
 
             try:
-                new_transaction = service.add_transaction(request_json)
+                new_transaction = service.add_transaction(data)
             except MissingImportantFields:
                 return '', 400
             except CategoryNotExists:

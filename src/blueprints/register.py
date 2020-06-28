@@ -20,12 +20,16 @@ class RegisterView(MethodView):
 
         :return: параметры созданного пользователя
         """
-        request_json = request.json
+        data = request.json
+
+        # Проверка на пустое тело запроса
+        if not data:
+            return '', 400
 
         with db.connection as con:
             service = RegisterService(con)
             try:
-                new_user = service.register(request_json)
+                new_user = service.register(data)
             except RegistrationFailedError:
                 return '', 409
             else:
