@@ -171,11 +171,16 @@ class TransactionsService:
         :param data: обновляемые данные
         :return: сформированный ответ
         """
-        owner = self._is_owner_transaction(transaction_id, user_id)
-        if not owner:
-            raise TransactionAccessDeniedError
+        # Проверка на существование операции и её принадлежность пользователю
+        self._is_owner_transaction(transaction_id, user_id)
 
+        # Преобразование специфичных полей данных
         data = self._parse_request(data)
+
+        # Проверка на существование категории и её принадлежность пользователю (если указана)
+        if data['category_id'] is not None:
+            self._is_owner_category(data['category_id'], user_id)
+
         is_patched = update('operation', data, transaction_id, self.connection)
         if not is_patched:
             raise DataBaseConflictError

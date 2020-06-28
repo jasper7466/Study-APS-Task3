@@ -10,13 +10,14 @@ from services.transactions import (
     TransactionsService,
     TransactionDoesNotExistError,
     TransactionAccessDeniedError,
+    TransactionInvalidPeriodError,
     MissingRequiredFields,
     NegativeValue,
     CategoryDoesNotExistError,
     CategoryAccessDeniedError,
     EmptyReportError,
     PageReportNotExist,
-    TransactionInvalidPeriodError
+    DataBaseConflictError
 )
 
 bp = Blueprint('transactions', __name__)
@@ -113,9 +114,9 @@ class TransactionView(MethodView):
             service = TransactionsService(con)
             try:
                 response = service.patch_transaction(transaction_id, user['id'], data)
-            except TransactionDoesNotExistError:
+            except TransactionDoesNotExistError or CategoryDoesNotExistError:
                 return '', 404
-            except TransactionAccessDeniedError:
+            except TransactionAccessDeniedError or CategoryAccessDeniedError:
                 return '', 403
             except NegativeValue:
                 return '', 400
