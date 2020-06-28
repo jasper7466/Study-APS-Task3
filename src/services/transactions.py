@@ -9,7 +9,8 @@ from exceptions import ServiceError
 from flask import url_for
 from services.helper import (
     insert,
-    update
+    update,
+    delete
 )
 
 
@@ -29,7 +30,7 @@ class TransactionAccessDeniedError(TransactionsServiceError):
     pass
 
 
-class TransactionPatchError(TransactionsServiceError):
+class DataBaseConflictError(TransactionsServiceError):
     pass
 
 
@@ -46,18 +47,6 @@ class CategoryDoesNotExistError(TransactionsServiceError):
 
 
 class CategoryAccessDeniedError(TransactionsServiceError):
-    pass
-
-
-class TransactionAddingFailedError(TransactionsServiceError):
-    pass
-
-
-class TransactionNotExists(TransactionsServiceError):
-    pass
-
-
-class OtherUserTransaction(TransactionsServiceError):
     pass
 
   
@@ -94,7 +83,7 @@ class TransactionsService:
         # Вставка в таблицу БД
         instance_id = insert('operation', data, self.connection)
         if instance_id is None:
-            raise TransactionAddingFailedError()
+            raise DataBaseConflictError(data)
 
         # Запрос на получение созданной операции и возврат преобразованных для ответа данных
         created = self._get_transaction(instance_id)
@@ -117,12 +106,12 @@ class TransactionsService:
                         Ссылку на получение следующей страницы отчёта;
                         Ссылку на получение предыдущей страницы отчёта.
         """
-        category_id = transaction_filters.get('category_id')
-        from_date = transaction_filters.get('from')
-        to_date = transaction_filters.get('to')
+        category_id = transaction_filters.get('category_id', None)
+        from_date = transaction_filters.get('from', None)
+        to_date = transaction_filters.get('to', None)
         period = transaction_filters.get('period', None)
-        page_size = transaction_filters.get('page_size')
-        current_page = transaction_filters.get('page')
+        page_size = transaction_filters.get('page_size', None)
+        current_page = transaction_filters.get('page', None)
 
         # Проверка важных входных объектов, при их отсутствии устанавливаются значения по умолчанию
         if category_id is None:
@@ -189,55 +178,28 @@ class TransactionsService:
         data = self._parse_request(data)
         is_patched = update('operation', data, transaction_id, self.connection)
         if not is_patched:
-            raise TransactionPatchError
+            raise DataBaseConflictError
         else:
             patched = self._get_transaction(transaction_id)
             return self._parse_response(patched)
 
-    def delete_transaction(self, delete_transaction):
+    def delete_transaction(self, data):
         """
         Метод, реализующий бизнес-логику эндпоинта удаления существующей операции.
 
-        :param delete_transaction: параметры операции
+        :param data: параметры операции
         :return: nothing
         """
-        user_id = delete_transaction.get('user_id')
-        transaction_id = delete_transaction.get('transaction_id')
+        user_id = data.get('user_id')
+        transaction_id = data.get('transaction_id')
 
-        # Проверка на существование операции
-        cursor = self.connection.execute(
-            """
-            SELECT *
-            FROM operation
-            WHERE id = ?
-            """,
-            (transaction_id,),
-        )
-        cursor = cursor.fetchone()
-        if not cursor:
-            raise TransactionNotExists()
-
-        # Проверка на принадлежность операции пользователю
-        cursor = self.connection.execute(
-            """
-            SELECT *
-            FROM operation
-            WHERE id = ? AND user_id =?
-            """,
-            (transaction_id, user_id,),
-        )
-        cursor = cursor.fetchone()
-        if not cursor:
-            raise OtherUserTransaction()
+        # Проверка на существование операции и её принадлежность пользователю
+        self._is_owner_transaction(transaction_id, user_id)
 
         # Удаляем операцию
-        self.connection.execute(
-            """
-            DELETE FROM operation
-            WHERE id = ?
-            """,
-            (transaction_id,),
-        )
+        is_deleted = delete('operation', transaction_id, self.connection)
+        if not is_deleted:
+            raise DataBaseConflictError
 
     def _get_transaction(self, transaction_id):
         """
@@ -259,11 +221,12 @@ class TransactionsService:
 
         :param user_id: идентификатор пользователя
         :param transaction_id: идентификатор операции
-        :return: True/False
+        :return: True or raise exception
         """
         transaction = self._get_transaction(transaction_id)
-        owner_id = transaction['user_id']
-        return user_id == owner_id
+        if transaction['user_id'] != user_id:
+            raise TransactionAccessDeniedError
+        return True
 
     def _is_owner_category(self, category_id, user_id):
         """

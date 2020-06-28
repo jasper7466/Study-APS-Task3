@@ -10,14 +10,10 @@ from services.transactions import (
     TransactionsService,
     TransactionDoesNotExistError,
     TransactionAccessDeniedError,
-    TransactionPatchError,
     MissingRequiredFields,
     NegativeValue,
     CategoryDoesNotExistError,
     CategoryAccessDeniedError,
-    TransactionAddingFailedError,
-    OtherUserTransaction,
-    TransactionNotExists,
     EmptyReportError,
     PageReportNotExist,
     TransactionInvalidPeriodError
@@ -60,7 +56,7 @@ class TransactionsView(MethodView):
                 return '', 403
             except NegativeValue:
                 return '', 400
-            except TransactionAddingFailedError:
+            except DataBaseConflictError:
                 return '', 409
             else:
                 return jsonify(new_transaction), 201, {'Content-Type': 'application/json'}
@@ -123,8 +119,8 @@ class TransactionView(MethodView):
                 return '', 403
             except NegativeValue:
                 return '', 400
-            except TransactionPatchError:
-                return '', 500
+            except DataBaseConflictError:
+                return '', 409
             else:
                 return jsonify(response), 200, {'Content-Type': 'application/json'}
               
@@ -137,19 +133,17 @@ class TransactionView(MethodView):
         :param transaction_id: идентификатор удаляемой операции
         :return: сформированный ответ
         """
-        data_to_delete = {
-            'user_id': user['id'],
-            'transaction_id': transaction_id
-        }
+        data = dict()
+        data['user_id'] = user['id']
+        data['transaction_id'] = transaction_id
 
         with db.connection as connection:
             service = TransactionsService(connection)
-
             try:
-                service.delete_transaction(data_to_delete)
-            except OtherUserTransaction:
+                service.delete_transaction(data)
+            except TransactionAccessDeniedError:
                 return '', 403
-            except TransactionNotExists:
+            except TransactionDoesNotExistError:
                 return '', 404
             else:
                 return '', 200

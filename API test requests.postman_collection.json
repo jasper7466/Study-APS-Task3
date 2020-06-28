@@ -850,7 +850,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:5000/transactions/123",
+							"raw": "http://127.0.0.1:5000/transactions/1000",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -861,30 +861,7 @@
 							"port": "5000",
 							"path": [
 								"transactions",
-								"123"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Nonathorized (401)",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:5000/transactions/7",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "5000",
-							"path": [
-								"transactions",
-								"7"
+								"1000"
 							]
 						}
 					},
