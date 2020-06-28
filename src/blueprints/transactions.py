@@ -11,10 +11,10 @@ from services.transactions import (
     TransactionDoesNotExistError,
     TransactionAccessDeniedError,
     TransactionPatchError,
-    MissingImportantFields,
+    MissingRequiredFields,
     NegativeValue,
-    CategoryNotExists,
-    OtherUserCategory,
+    CategoryDoesNotExistError,
+    CategoryAccessDeniedError,
     TransactionAddingFailedError,
     OtherUserTransaction,
     TransactionNotExists,
@@ -52,11 +52,11 @@ class TransactionsView(MethodView):
 
             try:
                 new_transaction = service.add_transaction(data)
-            except MissingImportantFields:
+            except MissingRequiredFields:
                 return '', 400
-            except CategoryNotExists:
+            except CategoryDoesNotExistError:
                 return '', 404
-            except OtherUserCategory:
+            except CategoryAccessDeniedError:
                 return '', 403
             except NegativeValue:
                 return '', 400
@@ -78,9 +78,9 @@ class TransactionsView(MethodView):
             service = TransactionsService(connection)
             try:
                 report = service.get_transaction(query_str, user['id'])
-            except CategoryNotExists:
+            except CategoryDoesNotExistError:
                 return '', 404
-            except OtherUserCategory:
+            except TransactionAccessDeniedError:
                 return '', 403
             except EmptyReportError:
                 return '', 404
