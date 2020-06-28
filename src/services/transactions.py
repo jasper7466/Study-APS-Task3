@@ -73,8 +73,9 @@ class TransactionsService:
     def _get_transaction(self, transaction_id):
         """
         Метод для получения параметров операции по её идентификатору.
+
         :param transaction_id: идентификатор операции
-        :return transaction: операция
+        :return: параметры операции
         """
         cur = self.connection.execute(f'SELECT * FROM operation WHERE id = "{transaction_id}"')
         transaction = cur.fetchone()
@@ -86,9 +87,10 @@ class TransactionsService:
     def _is_owner(self, transaction_id, user_id):
         """
         Метод для проверки принадлежности операции пользователю.
+
         :param user_id: идентификатор пользователя
         :param transaction_id: идентификатор операции
-        :return is_owner: True/False
+        :return: True/False
         """
         transaction = self._get_transaction(transaction_id)
         owner_id = transaction['user_id']
@@ -96,10 +98,11 @@ class TransactionsService:
 
     def _is_owner_category(self, category_id, user_id):
         """
-        Метод для проверки принадлежности операции пользователю.
+        Метод для проверки принадлежности категории пользователю.
+
         :param user_id: идентификатор пользователя
-        :param category_id: идентификатор операции
-        :return is_owner: True/False
+        :param category_id: идентификатор категории
+        :return: True/False
         """
         cursor = self.connection.execute(
             """
@@ -117,10 +120,10 @@ class TransactionsService:
 
     def _category_exist(self, category_id):
         """
-        Метод для проверки на существование категории
+        Метод для проверки существования категории.
 
-        :param category_id: идентификатор проверяемой категории
-        :return : bool переменную True - категория существует; False - категория не существует
+        :param category_id: идентификатор категории
+        :return: True/False
         """
         cursor = self.connection.execute(
             """
@@ -138,10 +141,11 @@ class TransactionsService:
 
     def _parse_request(self, data):
         """
-        Парсер специфичных полей запроса для дальнейшей
+        Парсер специфичных полей запроса из JSON-формата в Python-формат для дальнейшей
         корректной работы с ними.
+
         :param data: данные запроса
-        :return data: преобразованные данные запроса
+        :return: преобразованные данные запроса
         """
         transaction_type = data.get('type', None)
         amount = data.get('amount', None)
@@ -156,10 +160,10 @@ class TransactionsService:
 
     def _parse_response(self, data):
         """
-        Парсер специфичных полей выборки от БД для
-        формирования корректных ответов.
+        Парсер специфичных полей выборки от БД для формирования корректных JSON-ответов.
+
         :param data: данные из БД
-        :return data: преобразованные данные для ответа
+        :return: преобразованные данные для ответа
         """
         transaction_type = data.get('type', None)
         amount = data.get('amount', None)
@@ -173,12 +177,12 @@ class TransactionsService:
         """
         Метод получения дерева категорий
 
-        :param user_id: id авторизарованного пользователя
-        :param category_id: id категории по которой проводится выборка
+        :param user_id: идентификатор пользователя
+        :param category_id: идентификатор категории, по которой проводится выборка
         :param topdown: параметр, определяющий путь обхода дерева. При True происходит обход от category_id
                         до конца дерева (т.е. вниз).
-                        При False происходи обход дерева от category_id до корня дерева (т.е. вверх)
-        :return: возвращает список словарей с id категорий в порядке обхода дерева.
+                        При False происходит обход дерева от category_id до корня дерева (т.е. вверх)
+        :return: возвращает список словарей с параметрами категорий в порядке обхода дерева.
         """
 
         # Проверка на существование категории, если она указана
@@ -224,7 +228,7 @@ class TransactionsService:
     def _get_links(self, filters, current_page, pages):
         """
         Метод формирования ссылок на следующую и предыдущую страницу пагинации
-        с сохранением пользовательских фильтров
+        с сохранением пользовательских фильтров.
 
         :param filters: dict изначальных query params
         :param current_page: страница, которая отображается в данный момент времени
@@ -266,7 +270,7 @@ class TransactionsService:
         :param transaction_id: идентификатор операции
         :param user_id: идентификатор пользователя
         :param data: обновляемые данные
-        :return response: сформированный ответ
+        :return: сформированный ответ
         """
         owner = self._is_owner(transaction_id, user_id)
         if not owner:
@@ -282,10 +286,10 @@ class TransactionsService:
 
     def add_transaction(self, new_transaction):
         """
-        Метод для создания новой операции
+        Метод для создания новой операции.
 
-        :param new_transaction: поля новой операции операции
-        :return new_transaction: новая операция
+        :param new_transaction: параметры создаваемой операции
+        :return: параметры созданной операции
         """
         type_transaction = new_transaction.get('type')
         amount = new_transaction.get('amount')
@@ -360,7 +364,10 @@ class TransactionsService:
 
     def delete_transaction(self, delete_transaction):
         """
-        Метод для удаления существующей транзакции
+        Метод для удаления существующей операции.
+
+        :param delete_transaction: параметры операции
+        :return: nothing
         """
         user_id = delete_transaction.get('user_id')
         transaction_id = delete_transaction.get('transaction_id')
@@ -399,8 +406,6 @@ class TransactionsService:
             """,
             (transaction_id,),
         )
-
-        return ''  # TODO странный return
 
     def _get_transactions(self, user_id, categories, page_size, offset_param, from_date, to_date, missing_category):
         """
@@ -475,7 +480,7 @@ class TransactionsService:
 
     def _week(self, reference=datetime.today()):
         """
-        Утилита для получения границ текщей недели.
+        Утилита для получения границ текущей недели.
 
         :param reference: опорная дата (по умолчанию - сегодня)
         :return: {'from': date_from, 'to': date_to} (в стандарте GMT)
@@ -499,7 +504,7 @@ class TransactionsService:
 
     def _month(self, reference=datetime.today()):
         """
-        Утилита для получения границ текщего месяца.
+        Утилита для получения границ текущего месяца.
 
         :param reference: опорная дата (по умолчанию - сегодня)
         :return: {'from': date_from, 'to': date_to} (в стандарте GMT)
@@ -539,7 +544,7 @@ class TransactionsService:
 
     def _quarter(self, reference=datetime.today()):
         """
-        Утилита для получения границ текщего квартала.
+        Утилита для получения границ текущего квартала.
 
         :param reference: опорная дата (по умолчанию - сегодня)
         :return: {'from': date_from, 'to': date_to} (в стандарте GMT)
@@ -591,7 +596,7 @@ class TransactionsService:
 
     def _year(self, reference=datetime.today()):
         """
-        Утилита для получения границ текщего года.
+        Утилита для получения границ текущего года.
 
         :param reference: опорная дата (по умолчанию - сегодня)
         :return: {'from': date_from, 'to': date_to} (в стандарте GMT)
@@ -617,7 +622,7 @@ class TransactionsService:
 
     def _get_period(self, period):
         """
-        Утилита для формирования границ временного интервала по заданному типу.
+        Утилита для формирования границ временного интервала по заданному типу периода.
 
         :param period: тип интервала (week, last_week, month, last_month, quarter, last_quarter, year, last_year)
         :return: {'from': date_from, 'to': date_to} (стандарт UTC, формат timestamp)

@@ -17,7 +17,8 @@ bp = Blueprint('auth', __name__)
 def login():
     """
     Обработчик POST-запроса на авторизацию пользователя.
-    :return response: сформированный ответ
+
+    :return: сформированный ответ
     """
     request_json = request.json
     email = request_json.get('email')
@@ -40,6 +41,7 @@ def login():
 def logout():
     """
     Обработчик POST-запроса на завершение сессии.
+
     :return: nothing
     """
     session.pop('user_id', None)

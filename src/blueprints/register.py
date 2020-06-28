@@ -16,7 +16,8 @@ class RegisterView(MethodView):
     def post(self):
         """
         Обработчик POST-запроса на регистрацию пользователя.
-        :return new_user: параметры созданного пользователя
+
+        :return: параметры созданного пользователя
         """
         request_json = request.json
 

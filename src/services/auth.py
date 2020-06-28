@@ -21,9 +21,10 @@ class AuthService:
     def login(self, email, password):
         """
         Метод авторизации пользователя.
+
         :param email: логин (e-mail)
         :param password: пароль
-        :return user_id: идентификатор пользователя
+        :return: идентификатор пользователя
         """
         cur = self.connection.execute(f'SELECT id, password FROM user WHERE email = "{email}"')
         user = cur.fetchone()

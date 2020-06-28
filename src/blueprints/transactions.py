@@ -37,7 +37,7 @@ class TransactionsView(MethodView):
         """
         Обработчик POST-запроса на добавление новой операции.
 
-        :return new_transaction: поля новой операции
+        :return: параметры новой операции
         """
         request_json = request.json
         request_json['user_id'] = user['id']
@@ -130,7 +130,7 @@ class TransactionView(MethodView):
 
         :param user: идентификатор авторизованного пользователя
         :param transaction_id: идентификатор удаляемой операции
-        :return:
+        :return: сформированный ответ
         """
         data_to_delete = {
             'user_id': user['id'],
