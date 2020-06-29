@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "f182d428-ab21-4899-b994-4edf0ebeec9d",
+		"_postman_id": "42d57d0f-13d7-4a8e-adf9-a48a5fc0afc5",
 		"name": "API test requests",
 		"description": "Коллекция тестовых запросов для проверки и отладки сервиса",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"first_name\": \"first_name_5\",\n\t\"last_name\": \"last_name_5\",\n\t\"email\": \"email_5\",\n\t\"password\": \"password_5\"\n}",
+							"raw": "{\n\t\"first_name\": \"first_name_7\",\n\t\"last_name\": \"last_name_7\",\n\t\"email\": \"email_7\",\n\t\"password\": \"password_7\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -76,7 +76,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "ac81ae10-9a53-456f-8051-b722a3dac595",
+						"id": "347da4cc-cba3-4eed-bb65-9c1edc3d3601",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -86,7 +86,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "4613e637-e7c8-4f82-a0a1-129ceb03bc8d",
+						"id": "40916a41-df60-41a0-89b4-96b9efcd3662",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -331,7 +331,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"Access denied test\",\n\t\"parent_id\": 5\n}",
+							"raw": "{\n\t\"name\": \"Access denied test\",\n\t\"parent_id\": 29\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -363,7 +363,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"Рис\",\n\t\"parent_id\": 1\n}",
+							"raw": "{\n\t\"name\": \"Транспорт\",\n\t\"parent_id\": null\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -394,7 +394,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"Рис\",\n\t\"parent_id\": null\n}",
+							"raw": "{\n\t\"name\": \"Транспорт\",\n\t\"parent_id\": 1\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -527,7 +527,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:5000/categories/2",
+							"raw": "http://127.0.0.1:5000/categories/45",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -538,7 +538,7 @@
 							"port": "5000",
 							"path": [
 								"categories",
-								"2"
+								"45"
 							]
 						},
 						"description": "Логин под пользователем с id = 2 (т.к. вторая категория у пользователя с id = 1)"
@@ -737,7 +737,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{}",
+							"raw": "",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1022,7 +1022,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://127.0.0.1:5000/categories/2",
+							"raw": "http://127.0.0.1:5000/categories/38",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -1033,7 +1033,7 @@
 							"port": "5000",
 							"path": [
 								"categories",
-								"2"
+								"38"
 							]
 						}
 					},
@@ -1046,7 +1046,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"parent_id\": 5\r\n}",
+							"raw": "{\r\n    \"parent_id\": 38\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1297,7 +1297,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:5000/transactions?category_id=123",
+							"raw": "http://127.0.0.1:5000/transactions?category_id=10000",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -1312,7 +1312,7 @@
 							"query": [
 								{
 									"key": "category_id",
-									"value": "123"
+									"value": "10000"
 								}
 							]
 						}
@@ -1325,7 +1325,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:5000/transactions?category_id=5",
+							"raw": "http://127.0.0.1:5000/transactions?category_id=29",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -1340,7 +1340,7 @@
 							"query": [
 								{
 									"key": "category_id",
-									"value": "5"
+									"value": "29"
 								}
 							]
 						}
