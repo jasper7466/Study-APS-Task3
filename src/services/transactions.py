@@ -282,7 +282,8 @@ class TransactionsService:
         data['type'] = data.get('type', None)
         data['amount'] = data.get('amount', None)
         data['category_id'] = data.get('category_id', None)
-        data['date'] = data.get('date', int(datetime.now().timestamp()))
+        now = calendar.timegm(datetime.now().utctimetuple())
+        data['date'] = data.get('date', int(now))
         data['description'] = data.get('description', None)
 
         if data['type'] is not None:
