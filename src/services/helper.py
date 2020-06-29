@@ -13,7 +13,7 @@ def insert(table, data, connection):
     """
     # Создание списков ключей и значений
     keys = ', '.join(f'{key}' for key in data.keys())
-    values = ', '.join(f'"{value}"' for value in data.values())
+    values = ', '.join(f'{quotes(value) if value is not None else "NULL"}' for value in data.values())
 
     # Попытка записи в БД
     try:
@@ -39,10 +39,14 @@ def update(table, data, id, connection, ref_id=None):
     :param ref_id: поле, по которому проверяется условие (по умолчанию - "id")
     :return: результат выполнения (True/False)
     """
-    records = ', '.join(f'{key} = {quotes(value) if value else "NULL"}' for key, value in data.items())
+    records = ', '.join(f'{key} = {quotes(value) if value is not None else "NULL"}' for key, value in data.items())
     try:
         connection.execute('PRAGMA foreign_keys = ON')
-        connection.execute(f'UPDATE {table} SET {records} WHERE {quotes(ref_id) if ref_id else "id"} = {id}')
+        connection.execute(f'''
+            UPDATE {table}
+            SET {records}
+            WHERE {quotes(ref_id) if ref_id is not None else "id"} = {id}
+        ''')
     except sqlite.IntegrityError:
         connection.rollback()
         return False
@@ -60,7 +64,7 @@ def delete(table, id, connection):
     :return: результат выполнения (True/False)
     """
     try:
-        #connection.execute('PRAGMA foreign_keys = ON')
+        connection.execute('PRAGMA foreign_keys = ON')
         connection.execute(f'DELETE FROM {table} WHERE id = {id}')
     except sqlite.IntegrityError:
         connection.rollback()

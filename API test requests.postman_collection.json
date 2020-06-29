@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "e43fb087-9948-4f1d-8729-d119d78d2135",
+		"_postman_id": "42d57d0f-13d7-4a8e-adf9-a48a5fc0afc5",
 		"name": "API test requests",
 		"description": "Коллекция тестовых запросов для проверки и отладки сервиса",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"first_name\": \"first_name_5\",\n\t\"last_name\": \"last_name_5\",\n\t\"email\": \"email_5\",\n\t\"password\": \"password_5\"\n}",
+							"raw": "{\n\t\"first_name\": \"first_name_7\",\n\t\"last_name\": \"last_name_7\",\n\t\"email\": \"email_7\",\n\t\"password\": \"password_7\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -76,7 +76,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "7f4e7f10-892a-45fc-b915-89295ae011a0",
+						"id": "347da4cc-cba3-4eed-bb65-9c1edc3d3601",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -86,7 +86,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "904d69ad-d67e-45f9-ad46-a667e4cdd9bd",
+						"id": "40916a41-df60-41a0-89b4-96b9efcd3662",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -331,7 +331,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"Access denied test\",\n\t\"parent_id\": 5\n}",
+							"raw": "{\n\t\"name\": \"Access denied test\",\n\t\"parent_id\": 29\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -363,7 +363,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"Рис\",\n\t\"parent_id\": 1\n}",
+							"raw": "{\n\t\"name\": \"Транспорт\",\n\t\"parent_id\": null\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -394,7 +394,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"name\": \"Рис\",\n\t\"parent_id\": null\n}",
+							"raw": "{\n\t\"name\": \"Транспорт\",\n\t\"parent_id\": 1\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -527,7 +527,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:5000/categories/2",
+							"raw": "http://127.0.0.1:5000/categories/45",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -538,7 +538,7 @@
 							"port": "5000",
 							"path": [
 								"categories",
-								"2"
+								"45"
 							]
 						},
 						"description": "Логин под пользователем с id = 2 (т.к. вторая категория у пользователя с id = 1)"
@@ -582,7 +582,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"type\": false,\r\n    \"amount\": \"54646.51\",\r\n    \"category_id\": 123\r\n}",
+							"raw": "{\r\n    \"type\": false,\r\n    \"amount\": \"54646.51\",\r\n    \"category_id\": 1000\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -613,7 +613,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"type\": false,\r\n    \"amount\": \"54646.51\",\r\n    \"category_id\": 2\r\n}",
+							"raw": "{\r\n    \"type\": false,\r\n    \"amount\": \"54646.51\",\r\n    \"category_id\": 30\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -737,7 +737,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{}",
+							"raw": "",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -850,7 +850,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:5000/transactions/123",
+							"raw": "http://127.0.0.1:5000/transactions/1000",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -861,30 +861,7 @@
 							"port": "5000",
 							"path": [
 								"transactions",
-								"123"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Nonathorized (401)",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:5000/transactions/7",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "5000",
-							"path": [
-								"transactions",
-								"7"
+								"1000"
 							]
 						}
 					},
@@ -1045,7 +1022,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://127.0.0.1:5000/categories/2",
+							"raw": "http://127.0.0.1:5000/categories/38",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -1056,7 +1033,7 @@
 							"port": "5000",
 							"path": [
 								"categories",
-								"2"
+								"38"
 							]
 						}
 					},
@@ -1069,7 +1046,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"parent_id\": 5\r\n}",
+							"raw": "{\r\n    \"parent_id\": 38\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1281,6 +1258,596 @@
 							"path": [
 								"categories",
 								"4"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Transactions report (GET /transactions)",
+			"item": [
+				{
+					"name": "Blank qs request success (200)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Category not exists (404)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?category_id=10000",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "category_id",
+									"value": "10000"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Other user category (403)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?category_id=29",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "category_id",
+									"value": "29"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Without parametrs (200)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS category=? (200)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?category_id=1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "category_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS to=? (200)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?to=1592498650",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "to",
+									"value": "1592498650"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS from=? (200, 3 items)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?from=1592499009",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "1592499009"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS from=?&to=? (200, 4 items)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?from=1592498742&to=1592500197",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "1592498742"
+								},
+								{
+									"key": "to",
+									"value": "1592500197"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS ?period=week (404)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?period=week",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "week"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS ?period=last_week (200, 6 items)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?period=last_week",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "last_week"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS ?period=month (200, 7 items)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?period=month",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "month"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS ?period=last_month (404)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?period=last_month",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "last_month"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS ?period=quarter (200, 7 items)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?period=quarter",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "quarter"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS ?period=last_quarter (404)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?period=last_quarter",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "last_quarter"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS ?period=year (200, 8 items)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?period=year",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "year"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS ?period=last_year (200, 9 items)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?period=last_year",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "last_year"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS ?period=last_year + from priority (200, 9 items) Copy",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?from=1592499009&period=last_year",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "1592499009"
+								},
+								{
+									"key": "period",
+									"value": "last_year"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS Invalid period  (400)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?period=last_century",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "last_century"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS page_size=? (200)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?page_size=1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "page_size",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS page=? (200)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?page=1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QS page=? (404)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/transactions?page=123",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "123"
+								}
 							]
 						}
 					},

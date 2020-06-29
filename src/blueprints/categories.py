@@ -117,7 +117,7 @@ class CategoryView(MethodView):
             except CategoryDeleteError:
                 return '', 409
             else:
-                return '', 200, {'Content-Type': 'application/json'}
+                return '', 200
 
     @auth_required
     def patch(self, user, category_id):

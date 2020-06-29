@@ -17,9 +17,10 @@ class RegisterService:
 
     def register(self, new_user):
         """
-        Метод для регистрации нового пользователя
+        Метод для регистрации нового пользователя.
+
         :param new_user: параметры нового пользователя
-        :return new_user: новый пользователь
+        :return: новый пользователь
         """
         # Замена открытого пароля на его хеш
         password_hash = generate_password_hash(new_user['password'])
